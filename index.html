@@ -200,8 +200,14 @@
 </div>
 
 <div id="confetti" class="confetti"></div>
-<!-- cache-busting & playsinline -->
-<audio id="jingleEl" preload="auto" src="in-the-summer-we-just-had.mp3?v=2" type="audio/mpeg" playsinline></audio>
+
+<!-- ✅ Musique d'ambiance continue (fondu + loop) -->
+<audio id="bgMusic"
+       preload="auto"
+       src="in-the-summer-we-just-had.mp3?v=3"
+       type="audio/mpeg"
+       playsinline
+       loop></audio>
 
 <script>
 /* ================== RESET ÉTAT LOCAL (optionnel) ================== */
@@ -257,15 +263,15 @@ const els = {
   final: qs('#final'), giftTo: qs('#giftTo'), meta: qs('#meta'),
   pBack: qs('#pBack'), pEvent: qs('#pEvent'), pBudget: qs('#pBudget'), pDate: qs('#pDate'),
   rules: qs('#rules'), confetti: qs('#confetti'),
-  jingleEl: qs('#jingleEl'), testSound: qs('#testSound')
+  testSound: qs('#testSound')
 };
 const state = { participants:[], pairs:[], tokens:{}, payload:null };
 
+/* ================== UI ORGANISATEUR ================== */
 function token(n){ const d='abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'; let o=''; for(let i=0;i<n;i++) o+=d[Math.floor(Math.random()*d.length)]; return o; }
 function shuffle(a){ const x=a.slice(); for(let i=x.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1)); [x[i],x[j]]=[x[j],x[i]];} return x; }
 function escapeHtml(str=''){ const map={"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}; return String(str).replace(/[&<>"']/g,c=>map[c]); }
 
-/* ================== UI ORGANISATEUR ================== */
 function addRow(name='', email=''){
   const row=document.createElement('div'); row.className='row'; row.style.alignItems='stretch';
   row.innerHTML=`
@@ -369,67 +375,63 @@ function loadLocal(){
   renderRules(); refreshState();
 }
 
-/* ================== AUDIO ROBUSTE + FALLBACK ================== */
-const jingle = els.jingleEl;
-let jingleReady = false;
+/* ================== MUSIQUE D'AMBIANCE CONTINUE (FONDU) ================== */
+const music = document.getElementById('bgMusic');
+let musicStarted = false;
 
-if (jingle) {
-  jingle.volume = 0.7;
-  jingle.muted = false;
-  jingle.preload = 'auto';
-  jingle.load();
-
-  jingle.addEventListener('canplaythrough', () => { jingleReady = true; }, { once:true });
-  jingle.addEventListener('loadedmetadata', () => { if (jingle.duration>0) jingleReady = true; });
-  jingle.addEventListener('error', () => { jingleReady = false; });
+function rampVolume(target = 0.35, durationMs = 4000) {
+  if (!music) return;
+  const start = music.volume || 0;
+  const t0 = performance.now();
+  function step(t) {
+    const k = Math.min(1, (t - t0) / durationMs);
+    music.volume = start + (target - start) * k;
+    if (k < 1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
 }
 
-// “ding” de secours si le MP3 est KO
-function playChime(){
-  try{
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
-    const master = ctx.createGain(); master.gain.value = 0.18; master.connect(ctx.destination);
-    const notes = [1320, 1760, 1480, 1980];
-    notes.forEach((f,i)=>{
-      const o=ctx.createOscillator(); const g=ctx.createGain();
-      o.type='triangle'; o.frequency.value=f;
-      const t0=ctx.currentTime+i*0.12, t1=t0+0.35;
-      g.gain.setValueAtTime(0,t0);
-      g.gain.linearRampToValueAtTime(1,t0+0.02);
-      g.gain.exponentialRampToValueAtTime(0.0001,t1);
-      o.connect(g); g.connect(master); o.start(t0); o.stop(t1+0.02);
-    });
-  }catch(e){}
+async function startMusicIfNeeded() {
+  if (!music || musicStarted) return;
+  try {
+    music.volume = 0.0;     // commence silencieux
+    music.muted = true;     // permet l’autoplay sur certains navigateurs
+    await music.play();     // tente l’autoplay
+    music.muted = false;    // on “démute” juste après
+    musicStarted = true;
+    rampVolume(0.35, 4000); // fondu d’entrée
+  } catch (e) { /* si bloqué, on attend le 1er geste */ }
 }
 
-// déverrouille l’audio au premier geste (iOS/Android)
-async function unlockAudioOnce(){
-  if (!jingle) return;
-  try { jingle.currentTime = 0; await jingle.play(); jingle.pause(); } catch(e) {}
-  jingle.currentTime = 0;
-}
-document.addEventListener('pointerdown', unlockAudioOnce, { once:true });
+// Autoplay dès que possible
+document.addEventListener('DOMContentLoaded', startMusicIfNeeded);
 
-// jouer le jingle (ou fallback)
-async function playJingle(){
-  try{
-    if (jingle && (jingleReady || jingle.duration>0)) {
-      jingle.currentTime = 0;
-      await jingle.play();
-      return;
-    }
-  }catch(e){}
-  playChime();
+// Déverrouille sur le 1er geste utilisateur (mobile/iOS), sans restart
+async function unlockMusicOnce() {
+  if (!music || musicStarted) return;
+  try {
+    music.volume = 0.0;
+    music.muted = true;
+    await music.play();     // démarre silencieusement
+    music.muted = false;
+    musicStarted = true;
+    rampVolume(0.35, 4000);
+  } catch (_) {}
 }
+document.addEventListener('pointerdown', unlockMusicOnce, { once: true });
 
-// bouton test
+// Bouton test : bascule mute/unmute sans relancer la musique
 if (els.testSound) {
   els.testSound.addEventListener('click', async ()=>{
-    const ok = jingle && (jingleReady || jingle.duration>0);
-    if (ok) { try{ jingle.currentTime=0; await jingle.play(); }catch(e){} }
-    else { playChime(); }
+    await startMusicIfNeeded();
+    if (!music) return;
+    music.muted = !music.muted;
+    els.testSound.textContent = music.muted ? '🔇 Son coupé' : '🔈 Son';
   });
 }
+
+// IMPORTANT : garde une fonction playJingle “no-op” pour ne rien interrompre
+function playJingle(){ /* musique ambiante continue — pas de jingle ponctuel */ }
 
 /* ================== VUE PARTICIPANT ================== */
 function rebuildFromPayload(payloadStr, tokenKey){
@@ -457,7 +459,7 @@ function startSlot(names, target){
     idx++;
     if(idx<seq.length-1){ delay=Math.min(260, delay + (idx>16?30:10)); setTimeout(tick, delay); }
     else{
-      els.slotName.textContent=target; playJingle(); burstConfetti();
+      els.slotName.textContent=target; burstConfetti();
       setTimeout(()=>{ els.slotStage.style.display='none'; els.final.style.display='grid'; els.giftTo.textContent='🎁 Tu offres à ' + target + ' !'; }, 400);
     }
   })();
@@ -479,7 +481,6 @@ function activateParticipant(meta, me, to){
   els.pDate.style.display = meta.dt ? '' : 'none'; els.pDate.textContent = meta.dt ? '📅 Échange : '+meta.dt : '';
 
   const allNames = (meta.list||[]).map(x=>x.g);
-  // Pré-brancher le bouton (même après reload)
   els.startReveal.onclick = ()=>{
     els.intro.style.display='none';
     els.slotStage.style.display='grid';
@@ -493,7 +494,7 @@ function activateParticipant(meta, me, to){
 
     els.spinBtn.onclick = ()=>{
       els.spinBtn.disabled = true;
-      playJingle(); // son au lancement
+      // pas de son ponctuel, la musique continue
       startSlot(allNames, to);
     };
   };
@@ -539,6 +540,8 @@ document.addEventListener('click', async e=>{
   ensureParticipantsFilled();
   handleHash();
   window.addEventListener('hashchange', handleHash);
+  // tente de lancer la musique immédiatement
+  document.addEventListener('DOMContentLoaded', startMusicIfNeeded);
 })();
 </script>
 </body>
