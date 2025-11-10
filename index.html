@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Secret Santa • Noël 🎄</title>
-  <meta name="description" content="Secret Santa 100% local, sans pub ni serveur, avec exclusions et reveal animé.">
+  <meta name="description" content="Secret Santa 100% local, sans pub ni serveur, avec exclusions et reveal animé." />
   <style>
     :root{
       --bg:#0b1c13; --panel:#10281b; --panel2:#0f2217; --ink:#f7faf7; --muted:#b7c7bb;
@@ -20,6 +20,7 @@
         radial-gradient(800px 500px at 10% 0%, rgba(255,255,255,.06), transparent 60%),
         radial-gradient(900px 600px at 100% 100%, rgba(255,255,255,.05), transparent 60%),
         var(--bg);
+      overflow-x:hidden;
     }
     /* neige */
     .snowflake{position:fixed; top:-10px; color:rgba(255,255,255,.85); user-select:none; pointer-events:none; animation:fall linear infinite; z-index:1; filter:drop-shadow(0 2px 2px rgba(0,0,0,.4))}
@@ -38,7 +39,8 @@
       width:100%; padding:12px 14px; border-radius:12px; border:1px solid var(--ring); background:#0b1f16; color:var(--ink); outline:none
     }
     input:focus{box-shadow:0 0 0 4px rgba(34,197,94,.18); border-color:#3aa466}
-    .btn{border:none; border-radius:14px; padding:12px 16px; font-weight:800; cursor:pointer; box-shadow:var(--shadow); background:#133021; color:#fff}
+    .btn{border:none; border-radius:14px; padding:12px 16px; font-weight:800; cursor:pointer; box-shadow:var(--shadow); background:#133021; color:#fff; transition:.04s transform}
+    .btn:active{transform:translateY(1px)}
     .btn.ghost{background:transparent; border:1px solid var(--ring)}
     .btn.ok{background:linear-gradient(135deg,#22c55e,#16a34a)}
     .btn.accent{background:linear-gradient(135deg,var(--accent),#f43f5e)}
@@ -52,6 +54,7 @@
     .pill{padding:6px 10px; border-radius:999px; background:#0b1f16; border:1px solid var(--ring); font-size:12px}
     .badge{display:inline-flex; align-items:center; gap:6px; padding:6px 10px; border-radius:999px; border:1px solid #4d1d1d; background:linear-gradient(180deg,#451a1a,#3b0d0d); color:#fecaca; font-size:12px}
     .footer{text-align:center; font-size:12px; color:#c6d5c8; padding:6px; opacity:.8}
+
     /* Intro participant + slot machine */
     .intro{display:grid; gap:14px; text-align:center; padding:22px; background:linear-gradient(180deg,rgba(16,40,27,.7),rgba(15,34,23,.9)); border:1px solid var(--ring); border-radius:var(--r)}
     .slot{display:grid; place-items:center; gap:10px; padding:20px; border:2px dashed #2b5d40; border-radius:16px; background:#0b1f16}
@@ -333,6 +336,7 @@
     for(let i=0;i<18;i++) sequence.push(pool[Math.floor(Math.random()*pool.length)]);
     for(let i=0;i<6;i++) sequence.push(pool[Math.floor(Math.random()*pool.length)]);
     sequence.push(target);
+    // Pré-affichage bandeau
     els.slotStrip.innerHTML='';
     sequence.slice(0,6).forEach(n=>{
       const c=document.createElement('span'); c.className='slot-chip'; c.textContent=n; els.slotStrip.appendChild(c);
@@ -400,34 +404,59 @@
       return {meta:data, me:entry.g, to:entry.r};
     }catch(e){ return null; }
   }
+
+  // Active la vue participant et câble les boutons de façon robuste
+  function activateParticipant(meta, me, to){
+    // badges d’info
+    els.pEvent.style.display = meta.ev ? '' : 'none'; els.pEvent.textContent = meta.ev ? '🎉 '+meta.ev : '';
+    els.pBudget.style.display = meta.bu ? '' : 'none'; els.pBudget.textContent = meta.bu ? '💶 Budget : '+meta.bu : '';
+    els.pDate.style.display = meta.dt ? '' : 'none'; els.pDate.textContent = meta.dt ? '📅 Échange : '+meta.dt : '';
+
+    const allNames = (meta.list||[]).map(x=>x.g);
+    const safeNames = allNames.length ? allNames : state.participants.map(p=>p.name);
+
+    // (Re)branche toujours les handlers
+    els.startReveal.onclick = ()=>{
+      els.intro.style.display='none';
+      els.slotStage.style.display='grid';
+      els.spinBtn.disabled = false;
+
+      // Pré-affiche quelques prénoms
+      els.slotStrip.innerHTML='';
+      (shuffle(safeNames).slice(0,6)).forEach(n=>{
+        const c=document.createElement('span'); c.className='slot-chip'; c.textContent=n; els.slotStrip.appendChild(c);
+      });
+
+      els.spinBtn.onclick = ()=>{
+        els.spinBtn.disabled = true;
+        startSlot(safeNames, to);
+      };
+    };
+  }
+
   function handleHash(){
     const u=new URLSearchParams(location.hash.slice(1));
     const d=u.get('d'), t=u.get('t');
+
     if(d && t){
-      els.organizer.style.display='none'; els.participant.style.display=''; els.help.style.display='none';
+      els.organizer.style.display='none';
+      els.participant.style.display='';
+      els.help.style.display='none';
+
       const parsed=rebuildFromPayload(d,t);
       if(!parsed){
-        els.intro.innerHTML = '<h2>⛔ Lien invalide</h2><p class="hint">Demande à l’organisateur un nouveau lien.</p>'; return;
+        els.intro.innerHTML = '<h2>⛔ Lien invalide</h2><p class="hint">Demande à l’organisateur un nouveau lien.</p>';
+        els.startReveal.onclick = ()=>{}; // éviter écran mort
+        return;
       }
-      const {meta, me, to}=parsed;
-      els.pEvent.style.display = meta.ev ? '' : 'none'; els.pEvent.textContent = meta.ev ? '🎉 '+meta.ev : '';
-      els.pBudget.style.display = meta.bu ? '' : 'none'; els.pBudget.textContent = meta.bu ? '💶 Budget : '+meta.bu : '';
-      els.pDate.style.display = meta.dt ? '' : 'none'; els.pDate.textContent = meta.dt ? '📅 Échange : '+meta.dt : '';
-
-      els.startReveal.onclick = ()=>{
-        els.intro.style.display='none';
-        els.slotStage.style.display='grid';
-        const allNames = (meta.list||[]).map(x=>x.g); // on défile des prénoms (ne révèle pas la cible)
-        els.spinBtn.onclick = ()=>{
-          els.spinBtn.disabled = true;
-          els.slotStrip.innerHTML='';
-          (shuffle(allNames).slice(0,6)).forEach(n=>{const c=document.createElement('span'); c.className='slot-chip'; c.textContent=n; els.slotStrip.appendChild(c);});
-          startSlot(allNames, to);
-        };
-      };
+      const {meta, me, to} = parsed;
+      activateParticipant(meta, me, to);
       return;
     }
-    els.organizer.style.display=''; els.participant.style.display='none';
+
+    // Pas de hash = mode organisateur
+    els.organizer.style.display='';
+    els.participant.style.display='none';
   }
 
   /* --- actions --- */
