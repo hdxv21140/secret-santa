@@ -4,38 +4,39 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Secret Santa • Noël 🎄</title>
-  <meta name="description" content="Secret Santa 100% local, sans pub, avec exclusions et reveal animé." />
+  <meta name="description" content="Secret Santa 100% local, sans pub ni serveur, avec exclusions et reveal animé.">
   <style>
     :root{
-      --bg: #0b1c13; --panel:#10281b; --panel-2:#0f2217; --ink:#f7faf7; --muted:#b7c7bb;
-      --ring:#234732; --accent:#e11d48; --gold:#facc15; --ok:#22c55e; --shadow:0 10px 25px rgba(0,0,0,.35),0 2px 6px rgba(0,0,0,.4);
-      --radius:18px;
+      --bg:#0b1c13; --panel:#10281b; --panel2:#0f2217; --ink:#f7faf7; --muted:#b7c7bb;
+      --ring:#234732; --accent:#e11d48; --gold:#facc15; --ok:#22c55e;
+      --shadow:0 10px 24px rgba(0,0,0,.35), 0 2px 6px rgba(0,0,0,.40);
+      --r:18px;
     }
-    *{box-sizing:border-box}
-    html,body{height:100%}
+    *{box-sizing:border-box} html,body{height:100%}
     body{
-      margin:0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
-      color:var(--ink);
+      margin:0; color:var(--ink);
+      font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
       background:
         radial-gradient(800px 500px at 10% 0%, rgba(255,255,255,.06), transparent 60%),
         radial-gradient(900px 600px at 100% 100%, rgba(255,255,255,.05), transparent 60%),
         var(--bg);
-      overflow-x:hidden;
     }
     /* neige */
     .snowflake{position:fixed; top:-10px; color:rgba(255,255,255,.85); user-select:none; pointer-events:none; animation:fall linear infinite; z-index:1; filter:drop-shadow(0 2px 2px rgba(0,0,0,.4))}
-    @keyframes fall{0%{transform:translateY(-10vh) translateX(0) rotate(0); opacity:0} 10%{opacity:1} 100%{transform:translateY(110vh) translateX(var(--x,0)) rotate(360deg); opacity:.95}}
+    @keyframes fall{0%{transform:translateY(-10vh) translateX(0) rotate(0);opacity:0} 10%{opacity:1} 100%{transform:translateY(110vh) translateX(var(--x,0)) rotate(360deg);opacity:.95}}
     .container{position:relative; z-index:2; max-width:980px; margin:0 auto; padding:24px; display:grid; gap:16px}
     header{display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap}
     .brand{display:flex; gap:12px; align-items:center}
     .logo{font-size:28px}
     h1{margin:0; font-size:22px}
     .tagline{color:var(--muted); font-size:13px}
-    .panel{background:linear-gradient(180deg,var(--panel),var(--panel-2)); border:1px solid var(--ring); border-radius:var(--radius); box-shadow:var(--shadow); padding:18px}
+    .panel{background:linear-gradient(180deg,var(--panel),var(--panel2)); border:1px solid var(--ring); border-radius:var(--r); box-shadow:var(--shadow); padding:18px}
     .grid{display:grid; gap:12px}
     .grid.two{grid-template-columns:1fr} @media(min-width:760px){.grid.two{grid-template-columns:1fr 1fr}}
     label{font-weight:700; font-size:14px}
-    input[type="text"],input[type="email"],input[type="date"]{width:100%; padding:12px 14px; border-radius:12px; border:1px solid var(--ring); background:#0b1f16; color:var(--ink); outline:none}
+    input[type="text"],input[type="email"],input[type="date"]{
+      width:100%; padding:12px 14px; border-radius:12px; border:1px solid var(--ring); background:#0b1f16; color:var(--ink); outline:none
+    }
     input:focus{box-shadow:0 0 0 4px rgba(34,197,94,.18); border-color:#3aa466}
     .btn{border:none; border-radius:14px; padding:12px 16px; font-weight:800; cursor:pointer; box-shadow:var(--shadow); background:#133021; color:#fff}
     .btn.ghost{background:transparent; border:1px solid var(--ring)}
@@ -51,12 +52,11 @@
     .pill{padding:6px 10px; border-radius:999px; background:#0b1f16; border:1px solid var(--ring); font-size:12px}
     .badge{display:inline-flex; align-items:center; gap:6px; padding:6px 10px; border-radius:999px; border:1px solid #4d1d1d; background:linear-gradient(180deg,#451a1a,#3b0d0d); color:#fecaca; font-size:12px}
     .footer{text-align:center; font-size:12px; color:#c6d5c8; padding:6px; opacity:.8}
-    /* Intro participant */
-    .intro{display:grid; gap:14px; text-align:center; padding:22px; background:linear-gradient(180deg,rgba(16,40,27,.7),rgba(15,34,23,.9)); border:1px solid var(--ring); border-radius:var(--radius)}
-    /* Slot machine */
+    /* Intro participant + slot machine */
+    .intro{display:grid; gap:14px; text-align:center; padding:22px; background:linear-gradient(180deg,rgba(16,40,27,.7),rgba(15,34,23,.9)); border:1px solid var(--ring); border-radius:var(--r)}
     .slot{display:grid; place-items:center; gap:10px; padding:20px; border:2px dashed #2b5d40; border-radius:16px; background:#0b1f16}
     .slot-name{font-size:42px; font-weight:900; letter-spacing:.4px; min-height:48px}
-    .slot-strip{display:flex; gap:8px; opacity:.8; flex-wrap:wrap; justify-content:center}
+    .slot-strip{display:flex; gap:8px; opacity:.85; flex-wrap:wrap; justify-content:center}
     .slot-chip{padding:6px 10px; border-radius:999px; background:#0f2217; border:1px solid #1e4130; font-size:12px}
     .confetti{position:fixed; left:0; top:0; width:100%; height:0; pointer-events:none; overflow:visible; z-index:9}
     .confetti i{position:absolute; width:8px; height:14px; background:var(--gold); transform:rotate(20deg); animation:drop 1.2s ease-out forwards}
@@ -64,7 +64,7 @@
   </style>
 </head>
 <body>
-  <!-- Neige -->
+  <!-- neige -->
   <div id="snow"></div>
 
   <div class="container">
@@ -159,9 +159,9 @@
 
       <!-- Intro -->
       <div id="intro" class="intro">
-        <h2>🎁 Bienvenue au Secret Santa&nbsp;!</h2>
-        <p>Cette édition a été par HenriGPT par <strong>Henri</strong>.</p>
-        <p class="hint">Tout est privé, sans pub, et fonctionne directement dans votre navigateur.</p>
+        <h2>🎁 Bienvenue au Secret Santa !</h2>
+        <p>Cette édition a été imaginée et organisée par <strong>Henri</strong>.</p>
+        <p class="hint">Tout est privé, sans pub, et fonctionne directement dans ton navigateur.</p>
         <div class="row" style="justify-content:center">
           <button class="btn gold" id="startReveal">Voir mon tirage</button>
         </div>
@@ -203,7 +203,7 @@
 
 <script>
 (function(){
-  // --- neige ---
+  /* --- neige --- */
   const snow = document.getElementById('snow');
   for(let i=0;i<24;i++){
     const s=document.createElement('div'); s.className='snowflake';
@@ -215,6 +215,7 @@
     snow.appendChild(s);
   }
 
+  /* --- données préchargées --- */
   const preloadedParticipants = [
     {name:"Hubert", email:"h2marliave@gmail.com"},
     {name:"Alexandre", email:"alexandre.giuglaris@gmail.com"},
@@ -225,47 +226,31 @@
     {name:"Constance", email:"constancedemarliave@gmail.com"},
     {name:"Lucile", email:"luciledemarliave@gmail.com"}
   ];
-
   const hardExclusions = [
     ["Hubert","Marie-Caroline"],
     ["Alexandre","Constance"],
     ["Henri","Caroline"]
   ];
 
+  /* --- helpers DOM --- */
   const qs = s => document.querySelector(s);
   const qsa = s => Array.from(document.querySelectorAll(s));
-
   const els = {
-    organizer: qs('#organizer'),
-    participant: qs('#participant'),
-    list: qs('#list'),
-    add: qs('#add'),
-    paste: qs('#paste'),
-    draw: qs('#draw'),
-    shuffle: qs('#shuffle'),
-    results: qs('#results'),
-    table: qs('#table'),
-    copyAll: qs('#copyAll'),
-    exportCsv: qs('#exportCsv'),
-    btnNew: qs('#btnNew'),
-    btnHelp: qs('#btnHelp'),
-    help: qs('#help'),
-    title: qs('#title'),
-    budget: qs('#budget'),
-    date: qs('#date'),
-    // participant
+    organizer: qs('#organizer'), participant: qs('#participant'),
+    list: qs('#list'), add: qs('#add'), paste: qs('#paste'),
+    draw: qs('#draw'), shuffle: qs('#shuffle'), results: qs('#results'),
+    table: qs('#table'), btnNew: qs('#btnNew'), btnHelp: qs('#btnHelp'), help: qs('#help'),
+    title: qs('#title'), budget: qs('#budget'), date: qs('#date'),
+    // participant view
+    intro: qs('#intro'), slotStage: qs('#slotStage'), slotName: qs('#slotName'),
+    slotStrip: qs('#slotStrip'), spinBtn: qs('#spinBtn'), final: qs('#final'),
+    giftTo: qs('#giftTo'), meta: qs('#meta'), pBack: qs('#pBack'),
     pEvent: qs('#pEvent'), pBudget: qs('#pBudget'), pDate: qs('#pDate'),
-    intro: qs('#intro'), startReveal: qs('#startReveal'),
-    slotStage: qs('#slotStage'), slotName: qs('#slotName'), slotStrip: qs('#slotStrip'), spinBtn: qs('#spinBtn'),
-    final: qs('#final'), giftTo: qs('#giftTo'), meta: qs('#meta'),
-    pBack: qs('#pBack'),
-    rules: qs('#rules'),
-    confetti: qs('#confetti')
+    rules: qs('#rules'), confetti: qs('#confetti')
   };
+  const state = { participants:[], pairs:[], tokens:{}, payload:null };
 
-  const state = { participants: [], pairs: [], tokens: {}, payload: null };
-
-  // --- UI organi ---
+  /* --- organiser UI --- */
   function addRow(name='', email=''){
     const row=document.createElement('div'); row.className='row'; row.style.alignItems='stretch';
     row.innerHTML=`
@@ -332,6 +317,143 @@
       els.table.appendChild(tr);
     });
   }
+  function renderRules(){
+    els.rules.innerHTML='';
+    hardExclusions.forEach(([a,b])=>{
+      const el=document.createElement('span'); el.className='badge';
+      el.innerHTML=`<span>⛔</span><span>${escapeHtml(a)}</span> <span>↔</span> <span>${escapeHtml(b)}</span>`;
+      els.rules.appendChild(el);
+    });
+  }
 
-  // --- slot-machine reveal ---
+  /* --- participant: slot-machine reveal --- */
   function startSlot(names, target){
+    const pool = names.filter(n=>n!==target);
+    const sequence = [];
+    for(let i=0;i<18;i++) sequence.push(pool[Math.floor(Math.random()*pool.length)]);
+    for(let i=0;i<6;i++) sequence.push(pool[Math.floor(Math.random()*pool.length)]);
+    sequence.push(target);
+    els.slotStrip.innerHTML='';
+    sequence.slice(0,6).forEach(n=>{
+      const c=document.createElement('span'); c.className='slot-chip'; c.textContent=n; els.slotStrip.appendChild(c);
+    });
+    let idx=0, delay=60;
+    function tick(){
+      const name=sequence[idx];
+      els.slotName.textContent=name;
+      if(idx<sequence.length-1){
+        els.slotStrip.removeChild(els.slotStrip.firstChild);
+        const chip=document.createElement('span'); chip.className='slot-chip'; chip.textContent=sequence[Math.min(idx+6,sequence.length-1)];
+        els.slotStrip.appendChild(chip);
+      }
+      idx++;
+      if(idx<sequence.length-1){
+        delay = Math.min(260, delay + (idx>16? 30 : 10));
+        setTimeout(tick, delay);
+      }else{
+        els.slotName.textContent=target; burstConfetti();
+        setTimeout(()=>{
+          els.slotStage.style.display='none';
+          els.final.style.display='grid';
+          els.giftTo.textContent='🎁 Tu offres à ' + target + ' !';
+        }, 400);
+      }
+    }
+    tick();
+  }
+  function burstConfetti(){
+    const colors=['#facc15','#e11d48','#22c55e','#60a5fa','#f472b6','#f97316'];
+    for(let i=0;i<90;i++){
+      const e=document.createElement('i');
+      e.style.left=Math.random()*100+'vw'; e.style.top='0';
+      e.style.background=colors[Math.floor(Math.random()*colors.length)];
+      e.style.transform=`rotate(${Math.random()*360}deg)`;
+      e.style.animationDelay=(Math.random()*0.6)+'s'; e.style.opacity=0.85;
+      els.confetti.appendChild(e); setTimeout(()=>e.remove(), 2000);
+    }
+  }
+
+  /* --- storage --- */
+  function token(n){ const d='abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'; let o=''; for(let i=0;i<n;i++) o+=d[Math.floor(Math.random()*d.length)]; return o; }
+  function escapeHtml(str=''){ return str.replace(/[&<>\"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c])); }
+  function saveLocal(){ try{ localStorage.setItem('ssanta_xmas', JSON.stringify({title:els.title.value,budget:els.budget.value,date:els.date.value,participants:state.participants,pairs:state.pairs,tokens:state.tokens,payload:state.payload})); }catch(e){} }
+  function loadLocal(){
+    try{
+      const raw=localStorage.getItem('ssanta_xmas');
+      if(raw){
+        const d=JSON.parse(raw);
+        els.title.value=d.title||''; els.budget.value=d.budget||''; els.date.value=d.date||'';
+        els.list.innerHTML=''; (d.participants||[]).forEach(p=>addRow(p.name,p.email));
+        if((d.pairs||[]).length){ state.pairs=d.pairs; state.tokens=d.tokens||{}; state.payload=d.payload||null; els.results.style.display=''; renderTable(); }
+        renderRules(); return;
+      }
+    }catch(e){}
+    els.list.innerHTML=''; preloadedParticipants.forEach(p=>addRow(p.name,p.email)); renderRules(); saveLocal();
+  }
+
+  /* --- hash payload (participant link) --- */
+  function rebuildFromPayload(payloadStr, tokenKey){
+    try{
+      const data = JSON.parse(decodeURIComponent(atob(payloadStr)));
+      const entry = (data.list||[]).find(x=>x.t===tokenKey);
+      if(!entry) return null;
+      return {meta:data, me:entry.g, to:entry.r};
+    }catch(e){ return null; }
+  }
+  function handleHash(){
+    const u=new URLSearchParams(location.hash.slice(1));
+    const d=u.get('d'), t=u.get('t');
+    if(d && t){
+      els.organizer.style.display='none'; els.participant.style.display=''; els.help.style.display='none';
+      const parsed=rebuildFromPayload(d,t);
+      if(!parsed){
+        els.intro.innerHTML = '<h2>⛔ Lien invalide</h2><p class="hint">Demande à l’organisateur un nouveau lien.</p>'; return;
+      }
+      const {meta, me, to}=parsed;
+      els.pEvent.style.display = meta.ev ? '' : 'none'; els.pEvent.textContent = meta.ev ? '🎉 '+meta.ev : '';
+      els.pBudget.style.display = meta.bu ? '' : 'none'; els.pBudget.textContent = meta.bu ? '💶 Budget : '+meta.bu : '';
+      els.pDate.style.display = meta.dt ? '' : 'none'; els.pDate.textContent = meta.dt ? '📅 Échange : '+meta.dt : '';
+
+      els.startReveal.onclick = ()=>{
+        els.intro.style.display='none';
+        els.slotStage.style.display='grid';
+        const allNames = (meta.list||[]).map(x=>x.g); // on défile des prénoms (ne révèle pas la cible)
+        els.spinBtn.onclick = ()=>{
+          els.spinBtn.disabled = true;
+          els.slotStrip.innerHTML='';
+          (shuffle(allNames).slice(0,6)).forEach(n=>{const c=document.createElement('span'); c.className='slot-chip'; c.textContent=n; els.slotStrip.appendChild(c);});
+          startSlot(allNames, to);
+        };
+      };
+      return;
+    }
+    els.organizer.style.display=''; els.participant.style.display='none';
+  }
+
+  /* --- actions --- */
+  document.addEventListener('click',e=>{
+    if(e.target && e.target.id==='add') addRow();
+    if(e.target && e.target.id==='draw') generate();
+    if(e.target && e.target.id==='shuffle') generate();
+    if(e.target && e.target.id==='btnNew'){ els.title.value='Secret Santa de Noël'; els.budget.value=''; els.date.value=''; els.list.innerHTML=''; state.participants=[]; state.pairs=[]; state.tokens={}; state.payload=null; els.results.style.display='none'; addRow(); addRow(); saveLocal(); }
+    if(e.target && e.target.id==='btnHelp'){ e.preventDefault(); els.help.style.display = els.help.style.display ? '' : 'none'; }
+    if(e.target && e.target.id==='pBack'){ location.hash=''; handleHash(); }
+  });
+  document.addEventListener('click', async e=>{
+    if(e.target && e.target.id==='paste'){
+      const txt=(await navigator.clipboard.readText().catch(()=>''))||'';
+      const list=txt?parsePaste(txt):[];
+      if(!list.length){ alert('Copie une liste (ligne par ligne ou séparée par des virgules) puis réessaie.'); return; }
+      list.forEach(p=>addRow(p.name,p.email)); saveLocal();
+    }
+  });
+
+  /* --- init --- */
+  addRow(); addRow();
+  loadLocal();
+  handleHash();
+  window.addEventListener('hashchange', handleHash);
+})();
+</script>
+</body>
+</html>
