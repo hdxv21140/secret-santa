@@ -1,208 +1,208 @@
 <!doctype html>
 <html lang="fr">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Secret Santa • Noël 🎄</title>
-  <meta name="description" content="Secret Santa 100% local, sans pub ni serveur, avec exclusions et reveal animé." />
-  <style>
-    :root{
-      --bg:#0b1c13; --panel:#10281b; --panel2:#0f2217; --ink:#f7faf7; --muted:#b7c7bb;
-      --ring:#234732; --accent:#e11d48; --gold:#facc15; --ok:#22c55e;
-      --shadow:0 10px 24px rgba(0,0,0,.35), 0 2px 6px rgba(0,0,0,.40);
-      --r:18px;
-    }
-    *{box-sizing:border-box} html,body{height:100%}
-    body{
-      margin:0; color:var(--ink);
-      font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
-      background:
-        radial-gradient(800px 500px at 10% 0%, rgba(255,255,255,.06), transparent 60%),
-        radial-gradient(900px 600px at 100% 100%, rgba(255,255,255,.05), transparent 60%),
-        var(--bg);
-      overflow-x:hidden;
-    }
-    /* neige */
-    .snowflake{position:fixed; top:-10px; color:rgba(255,255,255,.85); user-select:none; pointer-events:none; animation:fall linear infinite; z-index:1; filter:drop-shadow(0 2px 2px rgba(0,0,0,.4))}
-    @keyframes fall{0%{transform:translateY(-10vh) translateX(0) rotate(0);opacity:0} 10%{opacity:1} 100%{transform:translateY(110vh) translateX(var(--x,0)) rotate(360deg);opacity:.95}}
-    .container{position:relative; z-index:2; max-width:980px; margin:0 auto; padding:24px; display:grid; gap:16px}
-    header{display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap}
-    .brand{display:flex; gap:12px; align-items:center}
-    .logo{font-size:28px}
-    h1{margin:0; font-size:22px}
-    .tagline{color:var(--muted); font-size:13px}
-    .panel{background:linear-gradient(180deg,var(--panel),var(--panel2)); border:1px solid var(--ring); border-radius:var(--r); box-shadow:var(--shadow); padding:18px}
-    .grid{display:grid; gap:12px}
-    .grid.two{grid-template-columns:1fr} @media(min-width:760px){.grid.two{grid-template-columns:1fr 1fr}}
-    label{font-weight:700; font-size:14px}
-    input[type="text"],input[type="email"],input[type="date"]{
-      width:100%; padding:12px 14px; border-radius:12px; border:1px solid var(--ring); background:#0b1f16; color:var(--ink); outline:none
-    }
-    input:focus{box-shadow:0 0 0 4px rgba(34,197,94,.18); border-color:#3aa466}
-    .btn{border:none; border-radius:14px; padding:12px 16px; font-weight:800; cursor:pointer; box-shadow:var(--shadow); background:#133021; color:#fff; transition:.04s transform}
-    .btn:active{transform:translateY(1px)}
-    .btn.ghost{background:transparent; border:1px solid var(--ring)}
-    .btn.ok{background:linear-gradient(135deg,#22c55e,#16a34a)}
-    .btn.accent{background:linear-gradient(135deg,var(--accent),#f43f5e)}
-    .btn.gold{background:linear-gradient(135deg,#f59e0b,var(--gold)); color:#111}
-    .row{display:flex; gap:8px; align-items:center; flex-wrap:wrap}
-    .hint{font-size:13px; color:var(--muted)}
-    .divider{height:1px; background:#153523; margin:12px 0; opacity:.9}
-    table{width:100%; border-collapse:collapse}
-    th,td{padding:10px 8px; border-bottom:1px solid #183b27; text-align:left}
-    th{font-size:12px; color:#c9d9cd; letter-spacing:.2px; text-transform:uppercase}
-    .pill{padding:6px 10px; border-radius:999px; background:#0b1f16; border:1px solid var(--ring); font-size:12px}
-    .badge{display:inline-flex; align-items:center; gap:6px; padding:6px 10px; border-radius:999px; border:1px solid #4d1d1d; background:linear-gradient(180deg,#451a1a,#3b0d0d); color:#fecaca; font-size:12px}
-    .footer{text-align:center; font-size:12px; color:#c6d5c8; padding:6px; opacity:.8}
-
-    /* Intro participant + slot machine */
-    .intro{display:grid; gap:14px; text-align:center; padding:22px; background:linear-gradient(180deg,rgba(16,40,27,.7),rgba(15,34,23,.9)); border:1px solid var(--ring); border-radius:var(--r)}
-    .slot{display:grid; place-items:center; gap:10px; padding:20px; border:2px dashed #2b5d40; border-radius:16px; background:#0b1f16}
-    .slot-name{font-size:42px; font-weight:900; letter-spacing:.4px; min-height:48px}
-    .slot-strip{display:flex; gap:8px; opacity:.85; flex-wrap:wrap; justify-content:center}
-    .slot-chip{padding:6px 10px; border-radius:999px; background:#0f2217; border:1px solid #1e4130; font-size:12px}
-    .confetti{position:fixed; left:0; top:0; width:100%; height:0; pointer-events:none; overflow:visible; z-index:9}
-    .confetti i{position:absolute; width:8px; height:14px; background:var(--gold); transform:rotate(20deg); animation:drop 1.2s ease-out forwards}
-    @keyframes drop{to{transform:translateY(80vh) rotate(360deg)}}
-  </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Secret Santa • Noël 🎄</title>
+<meta name="description" content="Secret Santa 100% local, sans pub, avec exclusions, liens individuels et reveal animé.">
+<style>
+  :root{
+    --bg:#0b1c13; --panel:#10281b; --panel2:#0f2217; --ink:#f7faf7; --muted:#b7c7bb;
+    --ring:#234732; --accent:#e11d48; --gold:#facc15; --ok:#22c55e;
+    --shadow:0 10px 24px rgba(0,0,0,.35), 0 2px 6px rgba(0,0,0,.40);
+    --r:18px;
+  }
+  *{box-sizing:border-box} html,body{height:100%}
+  body{
+    margin:0; color:var(--ink);
+    font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
+    background:
+      radial-gradient(800px 500px at 10% 0%, rgba(255,255,255,.06), transparent 60%),
+      radial-gradient(900px 600px at 100% 100%, rgba(255,255,255,.05), transparent 60%),
+      var(--bg);
+    overflow-x:hidden;
+  }
+  /* neige */
+  .snowflake{position:fixed; top:-10px; color:rgba(255,255,255,.85); user-select:none; pointer-events:none; animation:fall linear infinite; z-index:1; filter:drop-shadow(0 2px 2px rgba(0,0,0,.4))}
+  @keyframes fall{0%{transform:translateY(-10vh) translateX(0) rotate(0);opacity:0} 10%{opacity:1} 100%{transform:translateY(110vh) translateX(var(--x,0)) rotate(360deg);opacity:.95}}
+  .container{position:relative; z-index:2; max-width:980px; margin:0 auto; padding:24px; display:grid; gap:16px}
+  header{display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap}
+  .brand{display:flex; gap:12px; align-items:center}
+  .logo{font-size:28px}
+  h1{margin:0; font-size:22px}
+  .tagline{color:var(--muted); font-size:13px}
+  .panel{background:linear-gradient(180deg,var(--panel),var(--panel2)); border:1px solid var(--ring); border-radius:var(--r); box-shadow:var(--shadow); padding:18px}
+  .grid{display:grid; gap:12px}
+  .grid.two{grid-template-columns:1fr} @media(min-width:760px){.grid.two{grid-template-columns:1fr 1fr}}
+  label{font-weight:700; font-size:14px}
+  input[type="text"],input[type="email"],input[type="date"]{
+    width:100%; padding:12px 14px; border-radius:12px; border:1px solid var(--ring); background:#0b1f16; color:var(--ink); outline:none
+  }
+  input:focus{box-shadow:0 0 0 4px rgba(34,197,94,.18); border-color:#3aa466}
+  .btn{border:none; border-radius:14px; padding:12px 16px; font-weight:800; cursor:pointer; box-shadow:var(--shadow); background:#133021; color:#fff; transition:.04s transform}
+  .btn:active{transform:translateY(1px)}
+  .btn.ghost{background:transparent; border:1px solid var(--ring)}
+  .btn.ok{background:linear-gradient(135deg,#22c55e,#16a34a)}
+  .btn.accent{background:linear-gradient(135deg,var(--accent),#f43f5e)}
+  .btn.gold{background:linear-gradient(135deg,#f59e0b,var(--gold)); color:#111}
+  .row{display:flex; gap:8px; align-items:center; flex-wrap:wrap}
+  .hint{font-size:13px; color:var(--muted)}
+  .divider{height:1px; background:#153523; margin:12px 0; opacity:.9}
+  table{width:100%; border-collapse:collapse}
+  th,td{padding:10px 8px; border-bottom:1px solid #183b27; text-align:left}
+  th{font-size:12px; color:#c9d9cd; letter-spacing:.2px; text-transform:uppercase}
+  .pill{padding:6px 10px; border-radius:999px; background:#0b1f16; border:1px solid var(--ring); font-size:12px}
+  .badge{display:inline-flex; align-items:center; gap:6px; padding:6px 10px; border-radius:999px; border:1px solid #4d1d1d; background:linear-gradient(180deg,#451a1a,#3b0d0d); color:#fecaca; font-size:12px}
+  .footer{text-align:center; font-size:12px; color:#c6d5c8; padding:6px; opacity:.8}
+  /* Intro participant + slot */
+  .intro{display:grid; gap:14px; text-align:center; padding:22px; background:linear-gradient(180deg,rgba(16,40,27,.7),rgba(15,34,23,.9)); border:1px solid var(--ring); border-radius:var(--r)}
+  .slot{display:grid; place-items:center; gap:10px; padding:20px; border:2px dashed #2b5d40; border-radius:16px; background:#0b1f16}
+  .slot-name{font-size:42px; font-weight:900; letter-spacing:.4px; min-height:48px}
+  .slot-strip{display:flex; gap:8px; opacity:.85; flex-wrap:wrap; justify-content:center}
+  .slot-chip{padding:6px 10px; border-radius:999px; background:#0f2217; border:1px solid #1e4130; font-size:12px}
+  .confetti{position:fixed; left:0; top:0; width:100%; height:0; pointer-events:none; overflow:visible; z-index:9}
+  .confetti i{position:absolute; width:8px; height:14px; background:var(--gold); transform:rotate(20deg); animation:drop 1.2s ease-out forwards}
+  @keyframes drop{to{transform:translateY(80vh) rotate(360deg)}}
+</style>
 </head>
 <body>
-  <!-- neige -->
-  <div id="snow"></div>
+<!-- neige -->
+<div id="snow"></div>
 
-  <div class="container">
-    <header>
-      <div class="brand">
-        <div class="logo" aria-hidden="true">🎄</div>
-        <div>
-          <h1>Secret Santa • Spécial Noël</h1>
-          <div class="tagline">Magique, sans pub & 100% local ✨</div>
-        </div>
+<div class="container">
+  <header>
+    <div class="brand">
+      <div class="logo" aria-hidden="true">🎄</div>
+      <div>
+        <h1>Secret Santa • Spécial Noël</h1>
+        <div class="tagline">Magique, sans pub & 100% local ✨</div>
       </div>
-      <div class="row">
-        <button class="btn ghost" id="btnNew">Nouveau tirage</button>
-        <a class="btn gold" href="#" id="btnHelp">Aide</a>
-      </div>
-    </header>
+    </div>
+    <div class="row">
+      <button class="btn ghost" id="btnNew">Nouveau tirage</button>
+      <a class="btn gold" href="#" id="btnHelp">Aide</a>
+    </div>
+  </header>
 
-    <!-- ORGANISATEUR -->
-    <div id="organizer" class="panel">
-      <div class="grid two">
-        <div>
-          <label for="title">Nom de l'événement</label>
-          <input id="title" type="text" placeholder="Secret Santa de Noël" />
-        </div>
-        <div class="grid">
-          <div class="row">
-            <div style="flex:1">
-              <label for="budget">Budget</label>
-              <input id="budget" type="text" placeholder="15–20 €" />
-            </div>
-            <div style="flex:1">
-              <label for="date">Date d'échange</label>
-              <input id="date" type="date" />
-            </div>
+  <!-- ORGANISATEUR -->
+  <div id="organizer" class="panel">
+    <div class="grid two">
+      <div>
+        <label for="title">Nom de l'événement</label>
+        <input id="title" type="text" placeholder="Secret Santa de Noël" />
+      </div>
+      <div class="grid">
+        <div class="row">
+          <div style="flex:1">
+            <label for="budget">Budget</label>
+            <input id="budget" type="text" placeholder="15–20 €" />
+          </div>
+          <div style="flex:1">
+            <label for="date">Date d'échange</label>
+            <input id="date" type="date" />
           </div>
         </div>
       </div>
+    </div>
 
-      <div class="divider"></div>
+    <div class="divider"></div>
 
-      <div class="row" style="justify-content:space-between; align-items:flex-end;">
-        <div>
-          <label>Participants</label>
-          <div class="hint">Tu peux coller <em>prénom email</em> sur chaque ligne (email facultatif).</div>
-        </div>
-        <div class="row">
-          <button class="btn ghost" id="add">+ Ajouter</button>
-          <button class="btn" id="paste">Coller des prénoms</button>
-        </div>
+    <div class="row" style="justify-content:space-between; align-items:flex-end;">
+      <div>
+        <label>Participants</label>
+        <div class="hint">Tu peux coller <em>prénom email</em> sur chaque ligne (email facultatif).</div>
       </div>
-
-      <div id="list" class="grid" style="margin-top:8px"></div>
-
-      <div class="divider"></div>
-
-      <div class="grid">
-        <div class="row"><span class="pill">🎯 Règles d'exclusion</span></div>
-        <div id="rules" class="row"></div>
-        <div class="hint">Ces paires ne pourront ni s'offrir, ni se recevoir.</div>
-      </div>
-
-      <div class="divider"></div>
-
       <div class="row">
-        <button class="btn ok" id="draw">Tirer au sort</button>
-        <button class="btn accent" id="shuffle">Re-mélanger</button>
-        <span class="hint">Pas d'auto-attribution • Respecte les exclusions • Local only</span>
-      </div>
-
-      <div id="results" class="grid" style="display:none">
-        <div class="divider"></div>
-        <h3 style="margin:0">Liens individuels à partager</h3>
-        <div class="hint">Chaque lien ne révèle que la cible, tout est encodé dans le <span class="pill">#hash</span>.</div>
-        <table id="table"></table>
-        <div class="row">
-          <button class="btn ghost" id="copyAll">Copier tous les liens</button>
-          <button class="btn ghost" id="exportCsv">Exporter CSV</button>
-        </div>
+        <button class="btn ghost" id="add">+ Ajouter</button>
+        <button class="btn" id="paste">Coller des prénoms</button>
       </div>
     </div>
 
-    <!-- PARTICIPANT -->
-    <div id="participant" class="panel" style="display:none">
-      <div class="row" style="justify-content:space-between; align-items:start;">
-        <div class="row" style="gap:8px; flex-wrap:wrap;">
-          <span id="pEvent" class="pill"></span>
-          <span id="pBudget" class="pill"></span>
-          <span id="pDate" class="pill"></span>
-        </div>
-        <a class="btn ghost" id="pBack" href="#">Je suis l'organisateur·rice</a>
-      </div>
+    <div id="list" class="grid" style="margin-top:8px"></div>
 
-      <!-- Intro -->
-      <div id="intro" class="intro">
-        <h2>🎁 Bienvenue au Secret Santa !</h2>
-        <p>Cette édition a été imaginée et organisée par <strong>Henri</strong>.</p>
-        <p class="hint">Tout est privé, sans pub, et fonctionne directement dans ton navigateur.</p>
-        <div class="row" style="justify-content:center">
-          <button class="btn gold" id="startReveal">Voir mon tirage</button>
-        </div>
-      </div>
+    <div class="divider"></div>
 
-      <!-- Slot-machine -->
-      <div id="slotStage" class="slot" style="display:none">
-        <div class="slot-name" id="slotName">—</div>
-        <div class="slot-strip" id="slotStrip"></div>
-        <div class="row" style="justify-content:center; margin-top:6px">
-          <button class="btn gold" id="spinBtn">Lancer le défilement 🎰</button>
-        </div>
-      </div>
-
-      <!-- Résultat -->
-      <div id="final" class="intro" style="display:none">
-        <h2>🎅 Ton Secret Santa</h2>
-        <div id="giftTo" style="font-size:38px; font-weight:900; margin-top:6px"></div>
-        <div id="meta" class="hint" style="margin-top:6px"></div>
-      </div>
-
-      <div class="hint" style="text-align:center;">Garde ce lien secret ; il fonctionne aussi hors connexion après ouverture ✅</div>
+    <div class="grid">
+      <div class="row"><span class="pill">🎯 Règles d'exclusion</span></div>
+      <div id="rules" class="row"></div>
+      <div class="hint">Ces paires ne pourront ni s'offrir, ni se recevoir.</div>
     </div>
 
-    <div id="help" class="panel" style="display:none">
-      <h3>Mode d'emploi</h3>
-      <ol>
-        <li>Ajoute les prénoms (emails facultatifs).</li>
-        <li>Indique un budget et une date (optionnels).</li>
-        <li>Clique <strong>Tirer au sort</strong> : la page génère un tirage sans auto-attribution et respecte les exclusions.</li>
-        <li>Copie les <strong>liens individuels</strong> et envoie-les. Rien n'est envoyé à un serveur.</li>
-      </ol>
+    <div class="divider"></div>
+
+    <div class="row">
+      <button class="btn ok" id="draw">Tirer au sort</button>
+      <button class="btn accent" id="shuffle">Re-mélanger</button>
+      <span class="hint">Pas d'auto-attribution • Respecte les exclusions • Local only</span>
     </div>
 
-    <div class="footer">✨ Joyeux Noël ! — Code 100% côté client, sans pub ni traqueur.</div>
+    <div id="results" class="grid" style="display:none">
+      <div class="divider"></div>
+      <h3 style="margin:0">Liens individuels à partager</h3>
+      <div class="hint">Chaque lien ne révèle que la cible, tout est encodé dans le <span class="pill">#hash</span>.</div>
+      <table id="table"></table>
+      <div class="row">
+        <button class="btn ghost" id="copyAll">Copier tous les liens</button>
+        <button class="btn ghost" id="exportCsv">Exporter CSV</button>
+      </div>
+    </div>
   </div>
 
-  <div id="confetti" class="confetti"></div>
+  <!-- PARTICIPANT -->
+  <div id="participant" class="panel" style="display:none">
+    <div class="row" style="justify-content:space-between; align-items:start;">
+      <div class="row" style="gap:8px; flex-wrap:wrap;">
+        <span id="pEvent" class="pill"></span>
+        <span id="pBudget" class="pill"></span>
+        <span id="pDate" class="pill"></span>
+      </div>
+      <a class="btn ghost" id="pBack" href="#">Je suis l'organisateur·rice</a>
+    </div>
+
+    <!-- Intro -->
+    <div id="intro" class="intro">
+      <h2>🎁 Bienvenue au Secret Santa !</h2>
+      <p>Cette édition a été imaginée et organisée par <strong>Henri</strong>.</p>
+      <p class="hint">Tout est privé, sans pub, et fonctionne directement dans ton navigateur.</p>
+      <div class="row" style="justify-content:center">
+        <button class="btn gold" id="startReveal">Voir mon tirage</button>
+      </div>
+    </div>
+
+    <!-- Slot-machine -->
+    <div id="slotStage" class="slot" style="display:none">
+      <div class="slot-name" id="slotName">—</div>
+      <div class="slot-strip" id="slotStrip"></div>
+      <div class="row" style="justify-content:center; margin-top:6px">
+        <button class="btn gold" id="spinBtn">Lancer le défilement 🎰</button>
+      </div>
+    </div>
+
+    <!-- Résultat -->
+    <div id="final" class="intro" style="display:none">
+      <h2>🎅 Ton Secret Santa</h2>
+      <div id="giftTo" style="font-size:38px; font-weight:900; margin-top:6px"></div>
+      <div id="meta" class="hint" style="margin-top:6px"></div>
+    </div>
+
+    <div class="hint" style="text-align:center;">Garde ce lien secret ; il fonctionne aussi hors connexion après ouverture ✅</div>
+  </div>
+
+  <div id="help" class="panel" style="display:none">
+    <h3>Mode d'emploi</h3>
+    <ol>
+      <li>Ajoute les prénoms (emails facultatifs).</li>
+      <li>Indique un budget et une date (optionnels).</li>
+      <li>Clique <strong>Tirer au sort</strong> : la page génère un tirage sans auto-attribution et respecte les exclusions.</li>
+      <li>Copie les <strong>liens individuels</strong> et envoie-les. Rien n'est envoyé à un serveur.</li>
+    </ol>
+  </div>
+
+  <div class="footer">✨ Joyeux Noël ! — Code 100% côté client, sans pub ni traqueur.</div>
+</div>
+
+<div id="confetti" class="confetti"></div>
+<audio id="jingleEl" preload="auto" src="in-the-summer-we-just-had.mp3"></audio>
 
 <script>
 (function(){
@@ -240,34 +240,139 @@
   const qsa = s => Array.from(document.querySelectorAll(s));
   const els = {
     organizer: qs('#organizer'), participant: qs('#participant'),
-    list: qs('#list'), draw: qs('#draw'), shuffle: qs('#shuffle'),
-    results: qs('#results'), table: qs('#table'),
+    list: qs('#list'), add: qs('#add'), paste: qs('#paste'),
+    draw: qs('#draw'), shuffle: qs('#shuffle'),
+    results: qs('#results'), table: qs('#table'), copyAll: qs('#copyAll'), exportCsv: qs('#exportCsv'),
+    btnNew: qs('#btnNew'), btnHelp: qs('#btnHelp'), help: qs('#help'),
     title: qs('#title'), budget: qs('#budget'), date: qs('#date'),
-    intro: qs('#intro'), slotStage: qs('#slotStage'), slotName: qs('#slotName'),
-    slotStrip: qs('#slotStrip'), spinBtn: qs('#spinBtn'),
-    final: qs('#final'), giftTo: qs('#giftTo'),
-    pBack: qs('#pBack'), pEvent: qs('#pEvent'), pBudget: qs('#pBudget'),
-    pDate: qs('#pDate'), rules: qs('#rules'), confetti: qs('#confetti')
+    // participant
+    intro: qs('#intro'), startReveal: qs('#startReveal'),
+    slotStage: qs('#slotStage'), slotName: qs('#slotName'), slotStrip: qs('#slotStrip'), spinBtn: qs('#spinBtn'),
+    final: qs('#final'), giftTo: qs('#giftTo'), meta: qs('#meta'),
+    pBack: qs('#pBack'), pEvent: qs('#pEvent'), pBudget: qs('#pBudget'), pDate: qs('#pDate'),
+    rules: qs('#rules'), confetti: qs('#confetti'),
+    jingleEl: qs('#jingleEl')
   };
   const state = { participants:[], pairs:[], tokens:{}, payload:null };
 
-  /* --- Audio --- */
-  const jingle = new Audio("in-the-summer-we-just-had.mp3");
-  jingle.volume = 0.4;
-  jingle.preload = "auto";
-  function playJingle(){
-    jingle.currentTime = 0;
-    jingle.play().catch(()=>{});
+  /* --- utilitaires --- */
+  function token(n){ const d='abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'; let o=''; for(let i=0;i<n;i++) o+=d[Math.floor(Math.random()*d.length)]; return o; }
+  function shuffle(a){ const x=a.slice(); for(let i=x.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1)); [x[i],x[j]]=[x[j],x[i]];} return x; }
+  function escapeHtml(str=''){ return str.replace(/[&<>\"']/g, c=>({"&":"&amp;","<":"&lt;","&quot;":"&quot;","'":"&#39;",">":"&gt;"}[c]||c)); }
+
+  /* --- organiser UI --- */
+  function addRow(name='', email=''){
+    const row=document.createElement('div'); row.className='row'; row.style.alignItems='stretch';
+    row.innerHTML=`
+      <input type="text" placeholder="Prénom" value="${escapeHtml(name)}" style="flex:1"/>
+      <input type="email" placeholder="email (optionnel)" value="${escapeHtml(email)}" style="flex:1"/>
+      <button class="btn ghost" title="Supprimer">✕</button>`;
+    const [n,e,del]=row.children;
+    del.addEventListener('click',()=>{row.remove(); refreshState(); saveLocal();});
+    n.addEventListener('input',()=>{refreshState(); saveLocal();});
+    e.addEventListener('input',()=>{refreshState(); saveLocal();});
+    els.list.appendChild(row); refreshState();
+  }
+  function refreshState(){
+    state.participants = qsa('#list .row').map(r=>({name:r.children[0].value.trim(), email:r.children[1].value.trim()})).filter(p=>p.name);
+    els.draw.disabled = state.participants.length<2;
+    els.shuffle.disabled = !state.pairs.length;
+  }
+  function parsePaste(text){
+    const items = text.split(/[\n,;]+/).map(s=>s.trim()).filter(Boolean);
+    return items.map(s=>{
+      const parts=s.split(/\s+/);
+      if(parts.length>=2 && parts[parts.length-1].includes('@')){ const email=parts.pop(); return {name:parts.join(' '), email}; }
+      return {name:s, email:''};
+    });
+  }
+  function buildExclusionMap(names){
+    const m=new Map(); names.forEach(n=>m.set(n,new Set([n])));
+    hardExclusions.forEach(([a,b])=>{ if(m.has(a)) m.get(a).add(b); if(m.has(b)) m.get(b).add(a); });
+    return m;
+  }
+  function generateWithConstraints(names){
+    const N=names.length, excl=buildExclusionMap(names);
+    const receivers=new Set(names), order=shuffle(names), assign=new Map();
+    function dfs(i){
+      if(i===N) return true;
+      const g=order[i], cand=Array.from(receivers).filter(r=>!excl.get(g).has(r));
+      for(let k=cand.length-1;k>0;k--){const j=Math.floor(Math.random()*(k+1)); [cand[k],cand[j]]=[cand[j],cand[k]];}
+      for(const r of cand){ assign.set(g,r); receivers.delete(r); if(dfs(i+1)) return true; receivers.add(r); assign.delete(g); }
+      return false;
+    }
+    if(!dfs(0)) return null;
+    return names.map(g=>({giver:g, receiver:assign.get(g)}));
+  }
+  function generate(){
+    const names=state.participants.map(p=>p.name);
+    if(names.length<2){ alert('Ajoute au moins 2 participants.'); return; }
+    const pairs=generateWithConstraints(names);
+    if(!pairs){ alert('Impossible de respecter les exclusions avec cette liste.'); return; }
+    state.pairs=pairs; state.tokens={};
+    for(const {giver} of pairs) state.tokens[giver]=token(10);
+    buildPayload(); renderTable(); els.results.style.display=''; els.shuffle.disabled=false; saveLocal();
+  }
+  function buildPayload(){
+    const meta={ev: els.title.value.trim()||'', bu: els.budget.value.trim()||'', dt: els.date.value||'', list: state.pairs.map(pr=>({t:state.tokens[pr.giver], g:pr.giver, r:pr.receiver}))};
+    state.payload=btoa(encodeURIComponent(JSON.stringify(meta)));
+  }
+  function makeLink(token){ const base=location.href.split('#')[0]; return `${base}#d=${state.payload}&t=${token}`; }
+  function renderTable(){
+    els.table.innerHTML=''; const head=document.createElement('tr'); head.innerHTML='<th>Participant</th><th>Email</th><th>Lien individuel</th>'; els.table.appendChild(head);
+    state.participants.forEach(p=>{
+      const tr=document.createElement('tr'), link=makeLink(state.tokens[p.name]);
+      tr.innerHTML=`<td>${escapeHtml(p.name)}</td><td>${escapeHtml(p.email||'')}</td><td><span style="font-family:ui-monospace,monospace">${escapeHtml(link)}</span></td>`;
+      els.table.appendChild(tr);
+    });
+  }
+  function renderRules(){
+    els.rules.innerHTML='';
+    hardExclusions.forEach(([a,b])=>{
+      const el=document.createElement('span'); el.className='badge';
+      el.innerHTML=`<span>⛔</span><span>${escapeHtml(a)}</span> <span>↔</span> <span>${escapeHtml(b)}</span>`;
+      els.rules.appendChild(el);
+    });
   }
 
-  /* --- core functions abrégées --- */
-  function shuffle(a){ const x=a.slice(); for(let i=x.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1)); [x[i],x[j]]=[x[j],x[i]];} return x; }
+  /* --- stockage --- */
+  function saveLocal(){ try{ localStorage.setItem('ssanta_xmas', JSON.stringify({title:els.title.value,budget:els.budget.value,date:els.date.value,participants:state.participants,pairs:state.pairs,tokens:state.tokens,payload:state.payload})); }catch(e){} }
+  function loadLocal(){
+    try{
+      const raw=localStorage.getItem('ssanta_xmas');
+      if(raw){
+        const d=JSON.parse(raw);
+        els.title.value=d.title||''; els.budget.value=d.budget||''; els.date.value=d.date||'';
+        els.list.innerHTML=''; (d.participants||[]).forEach(p=>addRow(p.name,p.email));
+        if((d.pairs||[]).length){ state.pairs=d.pairs; state.tokens=d.tokens||{}; state.payload=d.payload||null; els.results.style.display=''; renderTable(); }
+        renderRules(); return;
+      }
+    }catch(e){}
+    els.list.innerHTML=''; preloadedParticipants.forEach(p=>addRow(p.name,p.email)); renderRules(); saveLocal();
+  }
 
-  /* --- Slot machine --- */
+  /* --- audio --- */
+  const jingle = els.jingleEl;
+  if(jingle){ jingle.volume = 0.4; }
+  function playJingle(){ if(!jingle) return; jingle.currentTime = 0; jingle.play().catch(()=>{}); }
+  // iOS/Android: déverrouille l’audio au premier geste
+  document.addEventListener('pointerdown', () => { try{ jingle && jingle.play().then(()=>jingle.pause()).catch(()=>{}); }catch(e){} }, {once:true});
+
+  /* --- participant (liens) --- */
+  function rebuildFromPayload(payloadStr, tokenKey){
+    try{
+      const data = JSON.parse(decodeURIComponent(atob(payloadStr)));
+      const entry = (data.list||[]).find(x=>x.t===tokenKey);
+      if(!entry) return null;
+      return {meta:data, me:entry.g, to:entry.r};
+    }catch(e){ return null; }
+  }
+
   function startSlot(names, target){
     const pool = names.filter(n=>n!==target);
     const seq = [];
     for(let i=0;i<18;i++) seq.push(pool[Math.floor(Math.random()*pool.length)]);
+    for(let i=0;i<6;i++) seq.push(pool[Math.floor(Math.random()*pool.length)]);
     seq.push(target);
     els.slotStrip.innerHTML='';
     seq.slice(0,6).forEach(n=>{
@@ -288,7 +393,7 @@
         setTimeout(tick, delay);
       }else{
         els.slotName.textContent=target;
-        playJingle(); // 🔔 son au moment du résultat
+        playJingle(); // son au moment du résultat
         burstConfetti();
         setTimeout(()=>{
           els.slotStage.style.display='none';
@@ -312,29 +417,26 @@
     }
   }
 
-  /* --- Reveal logique --- */
-  function rebuildFromPayload(payloadStr, tokenKey){
-    try{
-      const data = JSON.parse(decodeURIComponent(atob(payloadStr)));
-      const entry = (data.list||[]).find(x=>x.t===tokenKey);
-      if(!entry) return null;
-      return {meta:data, me:entry.g, to:entry.r};
-    }catch(e){ return null; }
-  }
-
   function activateParticipant(meta, me, to){
-    els.pEvent.textContent = meta.ev ? '🎉 '+meta.ev : '';
-    els.pBudget.textContent = meta.bu ? '💶 Budget : '+meta.bu : '';
-    els.pDate.textContent = meta.dt ? '📅 Échange : '+meta.dt : '';
+    els.pEvent.style.display = meta.ev ? '' : 'none'; els.pEvent.textContent = meta.ev ? '🎉 '+meta.ev : '';
+    els.pBudget.style.display = meta.bu ? '' : 'none'; els.pBudget.textContent = meta.bu ? '💶 Budget : '+meta.bu : '';
+    els.pDate.style.display = meta.dt ? '' : 'none'; els.pDate.textContent = meta.dt ? '📅 Échange : '+meta.dt : '';
 
     const allNames = (meta.list||[]).map(x=>x.g);
     els.startReveal.onclick = ()=>{
       els.intro.style.display='none';
       els.slotStage.style.display='grid';
       els.spinBtn.disabled = false;
-      playJingle(); // 🔊 joue au lancement du défilement
+
+      // pré-affiche quelques prénoms
+      els.slotStrip.innerHTML='';
+      (shuffle(allNames).slice(0,6)).forEach(n=>{
+        const c=document.createElement('span'); c.className='slot-chip'; c.textContent=n; els.slotStrip.appendChild(c);
+      });
+
       els.spinBtn.onclick = ()=>{
         els.spinBtn.disabled = true;
+        playJingle(); // son au lancement du défilement
         startSlot(allNames, to);
       };
     };
@@ -346,17 +448,52 @@
     if(d && t){
       els.organizer.style.display='none';
       els.participant.style.display='';
+      els.help.style.display='none';
       const parsed=rebuildFromPayload(d,t);
-      if(parsed){ activateParticipant(parsed.meta, parsed.me, parsed.to); }
+      if(!parsed){
+        els.intro.innerHTML = '<h2>⛔ Lien invalide</h2><p class="hint">Demande à l’organisateur un nouveau lien.</p>';
+        els.startReveal.onclick = ()=>{};
+        return;
+      }
+      const {meta, me, to} = parsed;
+      activateParticipant(meta, me, to);
       return;
     }
     els.organizer.style.display='';
     els.participant.style.display='none';
   }
 
+  /* --- actions --- */
+  document.addEventListener('click',e=>{
+    if(e.target && e.target.id==='add') addRow();
+    if(e.target && e.target.id==='draw') generate();
+    if(e.target && e.target.id==='shuffle') generate();
+    if(e.target && e.target.id==='btnNew'){
+      els.title.value='Secret Santa de Noël'; els.budget.value=''; els.date.value='';
+      els.list.innerHTML=''; state.participants=[]; state.pairs=[]; state.tokens={}; state.payload=null;
+      els.results.style.display='none'; addRow(); addRow(); saveLocal();
+    }
+    if(e.target && e.target.id==='btnHelp'){ e.preventDefault(); els.help.style.display = els.help.style.display ? '' : 'none'; }
+    if(e.target && e.target.id==='pBack'){ location.hash=''; handleHash(); }
+  });
+  document.addEventListener('click', async e=>{
+    if(e.target && e.target.id==='paste'){
+      const txt=(await navigator.clipboard.readText().catch(()=>''))||'';
+      const list=txt?parsePaste(txt):[];
+      if(!list.length){ alert('Copie une liste (ligne par ligne ou séparée par des virgules) puis réessaie.'); return; }
+      list.forEach(p=>addRow(p.name,p.email)); saveLocal();
+    }
+  });
+
   /* --- init --- */
-  handleHash();
-  window.addEventListener('hashchange', handleHash);
+  function boot(){
+    addRow(); addRow();
+    // charge localStorage ou préremplit
+    loadLocal();
+    handleHash();
+    window.addEventListener('hashchange', handleHash);
+  }
+  boot();
 })();
 </script>
 </body>
