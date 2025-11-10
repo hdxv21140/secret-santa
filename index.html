@@ -4,27 +4,17 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Secret Santa • Noël 🎄</title>
-  <meta name="description" content="Webapp Secret Santa de Noël, 100% locale, sans pub ni serveur, avec règles d'exclusion et reveal animé." />
+  <meta name="description" content="Secret Santa 100% local, sans pub, avec exclusions et reveal animé." />
   <style>
-    /* === STYLE DE NOËL === */
     :root{
-      --bg: #0b1c13;
-      --panel: #10281b;
-      --panel-2:#0f2217;
-      --ink: #f7faf7;
-      --muted:#b7c7bb;
-      --ring:#234732;
-      --accent:#e11d48;
-      --gold:#facc15;
-      --ok:#22c55e;
-      --shadow: 0 10px 25px rgba(0,0,0,.35), 0 2px 6px rgba(0,0,0,.4);
-      --radius: 18px;
+      --bg: #0b1c13; --panel:#10281b; --panel-2:#0f2217; --ink:#f7faf7; --muted:#b7c7bb;
+      --ring:#234732; --accent:#e11d48; --gold:#facc15; --ok:#22c55e; --shadow:0 10px 25px rgba(0,0,0,.35),0 2px 6px rgba(0,0,0,.4);
+      --radius:18px;
     }
     *{box-sizing:border-box}
     html,body{height:100%}
     body{
-      margin:0;
-      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      margin:0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
       color:var(--ink);
       background:
         radial-gradient(800px 500px at 10% 0%, rgba(255,255,255,.06), transparent 60%),
@@ -32,106 +22,316 @@
         var(--bg);
       overflow-x:hidden;
     }
-    .snowflake{
-      position: fixed; top:-10px; color: rgba(255,255,255,.85);
-      user-select:none; pointer-events:none;
-      animation-name: fall; animation-iteration-count: infinite;
-      z-index: 1; filter: drop-shadow(0 2px 2px rgba(0,0,0,.4));
-    }
-    @keyframes fall{
-      0%{ transform: translateY(-10vh) translateX(0) rotate(0); opacity:0;}
-      10%{ opacity:1; }
-      100%{ transform: translateY(110vh) translateX(var(--x, 0)) rotate(360deg); opacity:.95;}
-    }
-    .container{ position:relative; z-index:2; max-width: 960px; margin:0 auto; padding:24px; display:grid; gap:16px; }
-    h1{ margin:0; font-size:24px; }
-    .panel{ background: linear-gradient(180deg, var(--panel), var(--panel-2)); border:1px solid var(--ring); border-radius:var(--radius); box-shadow:var(--shadow); padding:18px; }
-    .btn{ border:none; border-radius:12px; padding:10px 16px; font-weight:700; cursor:pointer;
-      box-shadow:var(--shadow); background: linear-gradient(135deg, #f59e0b, var(--gold)); color:#111;
-    }
-    .intro{ text-align:center; padding:22px; background: linear-gradient(180deg, rgba(16,40,27,.7), rgba(15,34,23,.9)); border:1px solid var(--ring); border-radius: var(--radius); }
-    .wheel-wrap{ display:grid; place-items:center; gap:16px; }
-    .wheel{ width:280px; height:280px; border-radius:50%; border: 10px solid #1a3a28; position:relative; overflow:hidden; box-shadow:var(--shadow); }
-    .wheel .slice{ position:absolute; width:50%; height:50%; top:50%; left:50%; transform-origin: 0% 0%;
-      display:flex; align-items:center; justify-content:center; font-weight:900; }
-    .pointer{ width:0; height:0; border-left:10px solid transparent; border-right:10px solid transparent; border-bottom:16px solid var(--gold); }
-    .spin{ animation: spin 3.2s cubic-bezier(.2,.8,.1,1); }
-    @keyframes spin{ 0%{ transform: rotate(0deg); } 100%{ transform: rotate(1100deg); } }
+    /* neige */
+    .snowflake{position:fixed; top:-10px; color:rgba(255,255,255,.85); user-select:none; pointer-events:none; animation:fall linear infinite; z-index:1; filter:drop-shadow(0 2px 2px rgba(0,0,0,.4))}
+    @keyframes fall{0%{transform:translateY(-10vh) translateX(0) rotate(0); opacity:0} 10%{opacity:1} 100%{transform:translateY(110vh) translateX(var(--x,0)) rotate(360deg); opacity:.95}}
+    .container{position:relative; z-index:2; max-width:980px; margin:0 auto; padding:24px; display:grid; gap:16px}
+    header{display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap}
+    .brand{display:flex; gap:12px; align-items:center}
+    .logo{font-size:28px}
+    h1{margin:0; font-size:22px}
+    .tagline{color:var(--muted); font-size:13px}
+    .panel{background:linear-gradient(180deg,var(--panel),var(--panel-2)); border:1px solid var(--ring); border-radius:var(--radius); box-shadow:var(--shadow); padding:18px}
+    .grid{display:grid; gap:12px}
+    .grid.two{grid-template-columns:1fr} @media(min-width:760px){.grid.two{grid-template-columns:1fr 1fr}}
+    label{font-weight:700; font-size:14px}
+    input[type="text"],input[type="email"],input[type="date"]{width:100%; padding:12px 14px; border-radius:12px; border:1px solid var(--ring); background:#0b1f16; color:var(--ink); outline:none}
+    input:focus{box-shadow:0 0 0 4px rgba(34,197,94,.18); border-color:#3aa466}
+    .btn{border:none; border-radius:14px; padding:12px 16px; font-weight:800; cursor:pointer; box-shadow:var(--shadow); background:#133021; color:#fff}
+    .btn.ghost{background:transparent; border:1px solid var(--ring)}
+    .btn.ok{background:linear-gradient(135deg,#22c55e,#16a34a)}
+    .btn.accent{background:linear-gradient(135deg,var(--accent),#f43f5e)}
+    .btn.gold{background:linear-gradient(135deg,#f59e0b,var(--gold)); color:#111}
+    .row{display:flex; gap:8px; align-items:center; flex-wrap:wrap}
+    .hint{font-size:13px; color:var(--muted)}
+    .divider{height:1px; background:#153523; margin:12px 0; opacity:.9}
+    table{width:100%; border-collapse:collapse}
+    th,td{padding:10px 8px; border-bottom:1px solid #183b27; text-align:left}
+    th{font-size:12px; color:#c9d9cd; letter-spacing:.2px; text-transform:uppercase}
+    .pill{padding:6px 10px; border-radius:999px; background:#0b1f16; border:1px solid var(--ring); font-size:12px}
+    .badge{display:inline-flex; align-items:center; gap:6px; padding:6px 10px; border-radius:999px; border:1px solid #4d1d1d; background:linear-gradient(180deg,#451a1a,#3b0d0d); color:#fecaca; font-size:12px}
+    .footer{text-align:center; font-size:12px; color:#c6d5c8; padding:6px; opacity:.8}
+    /* Intro participant */
+    .intro{display:grid; gap:14px; text-align:center; padding:22px; background:linear-gradient(180deg,rgba(16,40,27,.7),rgba(15,34,23,.9)); border:1px solid var(--ring); border-radius:var(--radius)}
+    /* Slot machine */
+    .slot{display:grid; place-items:center; gap:10px; padding:20px; border:2px dashed #2b5d40; border-radius:16px; background:#0b1f16}
+    .slot-name{font-size:42px; font-weight:900; letter-spacing:.4px; min-height:48px}
+    .slot-strip{display:flex; gap:8px; opacity:.8; flex-wrap:wrap; justify-content:center}
+    .slot-chip{padding:6px 10px; border-radius:999px; background:#0f2217; border:1px solid #1e4130; font-size:12px}
+    .confetti{position:fixed; left:0; top:0; width:100%; height:0; pointer-events:none; overflow:visible; z-index:9}
+    .confetti i{position:absolute; width:8px; height:14px; background:var(--gold); transform:rotate(20deg); animation:drop 1.2s ease-out forwards}
+    @keyframes drop{to{transform:translateY(80vh) rotate(360deg)}}
   </style>
 </head>
 <body>
+  <!-- Neige -->
   <div id="snow"></div>
+
   <div class="container">
-    <div class="intro" id="intro">
-      <h2>🎁 Bienvenue au Secret Santa&nbsp;!</h2>
-      <p>Ce tirage a été imaginé et organisé par <strong>Henri</strong> 🎄</p>
-      <p>Tout est privé, sans pub, et fonctionne directement dans ton navigateur.</p>
-      <button class="btn" id="startReveal">Découvrir mon Secret Santa</button>
+    <header>
+      <div class="brand">
+        <div class="logo" aria-hidden="true">🎄</div>
+        <div>
+          <h1>Secret Santa • Spécial Noël</h1>
+          <div class="tagline">Magique, sans pub & 100% local ✨</div>
+        </div>
+      </div>
+      <div class="row">
+        <button class="btn ghost" id="btnNew">Nouveau tirage</button>
+        <a class="btn gold" href="#" id="btnHelp">Aide</a>
+      </div>
+    </header>
+
+    <!-- ORGANISATEUR -->
+    <div id="organizer" class="panel">
+      <div class="grid two">
+        <div>
+          <label for="title">Nom de l'événement</label>
+          <input id="title" type="text" placeholder="Secret Santa de Noël" />
+        </div>
+        <div class="grid">
+          <div class="row">
+            <div style="flex:1">
+              <label for="budget">Budget</label>
+              <input id="budget" type="text" placeholder="15–20 €" />
+            </div>
+            <div style="flex:1">
+              <label for="date">Date d'échange</label>
+              <input id="date" type="date" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="row" style="justify-content:space-between; align-items:flex-end;">
+        <div>
+          <label>Participants</label>
+          <div class="hint">Tu peux coller <em>prénom email</em> sur chaque ligne (email facultatif).</div>
+        </div>
+        <div class="row">
+          <button class="btn ghost" id="add">+ Ajouter</button>
+          <button class="btn" id="paste">Coller des prénoms</button>
+        </div>
+      </div>
+
+      <div id="list" class="grid" style="margin-top:8px"></div>
+
+      <div class="divider"></div>
+
+      <div class="grid">
+        <div class="row"><span class="pill">🎯 Règles d'exclusion</span></div>
+        <div id="rules" class="row"></div>
+        <div class="hint">Ces paires ne pourront ni s'offrir, ni se recevoir.</div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="row">
+        <button class="btn ok" id="draw">Tirer au sort</button>
+        <button class="btn accent" id="shuffle">Re-mélanger</button>
+        <span class="hint">Pas d'auto-attribution • Respecte les exclusions • Local only</span>
+      </div>
+
+      <div id="results" class="grid" style="display:none">
+        <div class="divider"></div>
+        <h3 style="margin:0">Liens individuels à partager</h3>
+        <div class="hint">Chaque lien ne révèle que la cible, tout est encodé dans le <span class="pill">#hash</span>.</div>
+        <table id="table"></table>
+        <div class="row">
+          <button class="btn ghost" id="copyAll">Copier tous les liens</button>
+          <button class="btn ghost" id="exportCsv">Exporter CSV</button>
+        </div>
+      </div>
     </div>
 
-    <div id="wheelStage" class="wheel-wrap" style="display:none">
-      <div class="pointer"></div>
-      <div id="wheel" class="wheel"></div>
-      <button class="btn" id="spinBtn">Lancer la roue 🎡</button>
+    <!-- PARTICIPANT -->
+    <div id="participant" class="panel" style="display:none">
+      <div class="row" style="justify-content:space-between; align-items:start;">
+        <div class="row" style="gap:8px; flex-wrap:wrap;">
+          <span id="pEvent" class="pill"></span>
+          <span id="pBudget" class="pill"></span>
+          <span id="pDate" class="pill"></span>
+        </div>
+        <a class="btn ghost" id="pBack" href="#">Je suis l'organisateur·rice</a>
+      </div>
+
+      <!-- Intro -->
+      <div id="intro" class="intro">
+        <h2>🎁 Bienvenue au Secret Santa&nbsp;!</h2>
+        <p>Cette édition a été par HenriGPT par <strong>Henri</strong>.</p>
+        <p class="hint">Tout est privé, sans pub, et fonctionne directement dans votre navigateur.</p>
+        <div class="row" style="justify-content:center">
+          <button class="btn gold" id="startReveal">Voir mon tirage</button>
+        </div>
+      </div>
+
+      <!-- Slot-machine -->
+      <div id="slotStage" class="slot" style="display:none">
+        <div class="slot-name" id="slotName">—</div>
+        <div class="slot-strip" id="slotStrip"></div>
+        <div class="row" style="justify-content:center; margin-top:6px">
+          <button class="btn gold" id="spinBtn">Lancer le défilement 🎰</button>
+        </div>
+      </div>
+
+      <!-- Résultat -->
+      <div id="final" class="intro" style="display:none">
+        <h2>🎅 Ton Secret Santa</h2>
+        <div id="giftTo" style="font-size:38px; font-weight:900; margin-top:6px"></div>
+        <div id="meta" class="hint" style="margin-top:6px"></div>
+      </div>
+
+      <div class="hint" style="text-align:center;">Garde ce lien secret ; il fonctionne aussi hors connexion après ouverture ✅</div>
     </div>
 
-    <div id="reveal" class="intro" style="display:none">
-      <h2>🎅 Ton Secret Santa</h2>
-      <div id="giftTo" style="font-size:32px; font-weight:800;"></div>
+    <div id="help" class="panel" style="display:none">
+      <h3>Mode d'emploi</h3>
+      <ol>
+        <li>Ajoute les prénoms (emails facultatifs).</li>
+        <li>Indique un budget et une date (optionnels).</li>
+        <li>Clique <strong>Tirer au sort</strong> : la page génère un tirage sans auto-attribution et respecte les exclusions.</li>
+        <li>Copie les <strong>liens individuels</strong> et envoie-les. Rien n'est envoyé à un serveur.</li>
+      </ol>
     </div>
+
+    <div class="footer">✨ Joyeux Noël ! — Code 100% côté client, sans pub ni traqueur.</div>
   </div>
+
+  <div id="confetti" class="confetti"></div>
 
 <script>
 (function(){
-  // neige
+  // --- neige ---
   const snow = document.getElementById('snow');
   for(let i=0;i<24;i++){
-    const s = document.createElement('div');
-    s.className='snowflake';
-    s.textContent = Math.random()<.5 ? '❄' : '✶';
-    s.style.left = Math.random()*100+'vw';
-    s.style.fontSize = (12+Math.random()*18)+'px';
-    s.style.animationDuration = (8+Math.random()*12)+'s';
-    s.style.setProperty('--x', (Math.random()*80-40)+'px');
+    const s=document.createElement('div'); s.className='snowflake';
+    s.textContent=Math.random()<.5?'❄':'✶';
+    s.style.left=Math.random()*100+'vw';
+    s.style.fontSize=(12+Math.random()*18)+'px';
+    s.style.animationDuration=(8+Math.random()*12)+'s';
+    s.style.setProperty('--x',(Math.random()*80-40)+'px');
     snow.appendChild(s);
   }
 
-  // roue
-  const wheel = document.getElementById('wheel');
-  const icons = ['🎁','⭐️','🎄','🦌','🧦','🍬','☃️','🔔'];
-  for(let i=0;i<8;i++){
-    const slice=document.createElement('div');
-    slice.className='slice';
-    const angle=i*45;
-    slice.style.transform=`rotate(${angle}deg) skewY(-45deg)`;
-    slice.style.background=i%2?'#facc15':'#e11d48';
-    slice.textContent=icons[i%icons.length];
-    wheel.appendChild(slice);
+  const preloadedParticipants = [
+    {name:"Hubert", email:"h2marliave@gmail.com"},
+    {name:"Alexandre", email:"alexandre.giuglaris@gmail.com"},
+    {name:"Henri", email:"hdemarliave@gmail.com"},
+    {name:"Louis", email:"louidemar@gmail.com"},
+    {name:"Caroline", email:"tillieuxcaroline@gmail.com"},
+    {name:"Marie-Caroline", email:"mcdemarliave@gmail.com"},
+    {name:"Constance", email:"constancedemarliave@gmail.com"},
+    {name:"Lucile", email:"luciledemarliave@gmail.com"}
+  ];
+
+  const hardExclusions = [
+    ["Hubert","Marie-Caroline"],
+    ["Alexandre","Constance"],
+    ["Henri","Caroline"]
+  ];
+
+  const qs = s => document.querySelector(s);
+  const qsa = s => Array.from(document.querySelectorAll(s));
+
+  const els = {
+    organizer: qs('#organizer'),
+    participant: qs('#participant'),
+    list: qs('#list'),
+    add: qs('#add'),
+    paste: qs('#paste'),
+    draw: qs('#draw'),
+    shuffle: qs('#shuffle'),
+    results: qs('#results'),
+    table: qs('#table'),
+    copyAll: qs('#copyAll'),
+    exportCsv: qs('#exportCsv'),
+    btnNew: qs('#btnNew'),
+    btnHelp: qs('#btnHelp'),
+    help: qs('#help'),
+    title: qs('#title'),
+    budget: qs('#budget'),
+    date: qs('#date'),
+    // participant
+    pEvent: qs('#pEvent'), pBudget: qs('#pBudget'), pDate: qs('#pDate'),
+    intro: qs('#intro'), startReveal: qs('#startReveal'),
+    slotStage: qs('#slotStage'), slotName: qs('#slotName'), slotStrip: qs('#slotStrip'), spinBtn: qs('#spinBtn'),
+    final: qs('#final'), giftTo: qs('#giftTo'), meta: qs('#meta'),
+    pBack: qs('#pBack'),
+    rules: qs('#rules'),
+    confetti: qs('#confetti')
+  };
+
+  const state = { participants: [], pairs: [], tokens: {}, payload: null };
+
+  // --- UI organi ---
+  function addRow(name='', email=''){
+    const row=document.createElement('div'); row.className='row'; row.style.alignItems='stretch';
+    row.innerHTML=`
+      <input type="text" placeholder="Prénom" value="${escapeHtml(name)}" style="flex:1"/>
+      <input type="email" placeholder="email (optionnel)" value="${escapeHtml(email)}" style="flex:1"/>
+      <button class="btn ghost" title="Supprimer">✕</button>`;
+    const [n,e,del]=row.children;
+    del.addEventListener('click',()=>{row.remove(); refreshState(); saveLocal();});
+    n.addEventListener('input',()=>{refreshState(); saveLocal();});
+    e.addEventListener('input',()=>{refreshState(); saveLocal();});
+    els.list.appendChild(row); refreshState();
+  }
+  function refreshState(){
+    state.participants = qsa('#list .row').map(r=>({name:r.children[0].value.trim(), email:r.children[1].value.trim()})).filter(p=>p.name);
+    els.draw.disabled = state.participants.length<2;
+    els.shuffle.disabled = !state.pairs.length;
+  }
+  function parsePaste(text){
+    const items = text.split(/[\n,;]+/).map(s=>s.trim()).filter(Boolean);
+    return items.map(s=>{
+      const parts=s.split(/\s+/);
+      if(parts.length>=2 && parts[parts.length-1].includes('@')){ const email=parts.pop(); return {name:parts.join(' '), email}; }
+      return {name:s, email:''};
+    });
+  }
+  function shuffle(a){ const x=a.slice(); for(let i=x.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1)); [x[i],x[j]]=[x[j],x[i]];} return x; }
+  function buildExclusionMap(names){
+    const m=new Map(); names.forEach(n=>m.set(n,new Set([n])));
+    hardExclusions.forEach(([a,b])=>{ if(m.has(a)) m.get(a).add(b); if(m.has(b)) m.get(b).add(a); });
+    return m;
+  }
+  function generateWithConstraints(names){
+    const N=names.length, excl=buildExclusionMap(names);
+    const receivers=new Set(names), order=shuffle(names), assign=new Map();
+    function dfs(i){
+      if(i===N) return true;
+      const g=order[i], cand=Array.from(receivers).filter(r=>!excl.get(g).has(r));
+      for(let k=cand.length-1;k>0;k--){const j=Math.floor(Math.random()*(k+1)); [cand[k],cand[j]]=[cand[j],cand[k]];}
+      for(const r of cand){ assign.set(g,r); receivers.delete(r); if(dfs(i+1)) return true; receivers.add(r); assign.delete(g); }
+      return false;
+    }
+    if(!dfs(0)) return null;
+    return names.map(g=>({giver:g, receiver:assign.get(g)}));
+  }
+  function generate(){
+    const names=state.participants.map(p=>p.name);
+    if(names.length<2){ alert('Ajoute au moins 2 participants.'); return; }
+    const pairs=generateWithConstraints(names);
+    if(!pairs){ alert('Impossible de respecter les exclusions avec cette liste.'); return; }
+    state.pairs=pairs; state.tokens={};
+    for(const {giver} of pairs) state.tokens[giver]=token(10);
+    buildPayload(); renderTable(); els.results.style.display=''; els.shuffle.disabled=false; saveLocal();
+  }
+  function buildPayload(){
+    const meta={ev: els.title.value.trim()||'', bu: els.budget.value.trim()||'', dt: els.date.value||'', list: state.pairs.map(pr=>({t:state.tokens[pr.giver], g:pr.giver, r:pr.receiver}))};
+    state.payload=btoa(encodeURIComponent(JSON.stringify(meta)));
+  }
+  function makeLink(token){ const base=location.href.split('#')[0]; return `${base}#d=${state.payload}&t=${token}`; }
+  function renderTable(){
+    els.table.innerHTML=''; const head=document.createElement('tr'); head.innerHTML='<th>Participant</th><th>Email</th><th>Lien individuel</th>'; els.table.appendChild(head);
+    state.participants.forEach(p=>{
+      const tr=document.createElement('tr'), link=makeLink(state.tokens[p.name]);
+      tr.innerHTML=`<td>${escapeHtml(p.name)}</td><td>${escapeHtml(p.email||'')}</td><td><span style="font-family:ui-monospace,monospace">${escapeHtml(link)}</span></td>`;
+      els.table.appendChild(tr);
+    });
   }
 
-  const intro=document.getElementById('intro');
-  const wheelStage=document.getElementById('wheelStage');
-  const reveal=document.getElementById('reveal');
-  const giftTo=document.getElementById('giftTo');
-
-  const names=["Hubert","Alexandre","Henri","Louis","Caroline","Marie-Caroline","Constance","Lucile"];
-  const exclusions=[["Hubert","Marie-Caroline"],["Alexandre","Constance"],["Henri","Caroline"]];
-
-  document.getElementById('startReveal').onclick=()=>{
-    intro.style.display='none';
-    wheelStage.style.display='grid';
-  };
-
-  document.getElementById('spinBtn').onclick=()=>{
-    wheel.classList.remove('spin'); void wheel.offsetWidth;
-    wheel.classList.add('spin');
-    setTimeout(()=>{
-      wheelStage.style.display='none';
-      reveal.style.display='block';
-      giftTo.textContent='🎁 Tu offres à ... ' + names[Math.floor(Math.random()*names.length)];
-    },3200);
-  };
-})();
-</script>
-</body>
-</html>
+  // --- slot-machine reveal ---
+  function startSlot(names, target){
