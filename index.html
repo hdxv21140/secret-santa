@@ -46,7 +46,7 @@
   .btn.accent{background:linear-gradient(135deg,var(--accent),#f43f5e)}
   .btn.gold{background:linear-gradient(135deg,#f59e0b,var(--gold)); color:#111}
   .row{display:flex; gap:8px; align-items:center; flex-wrap:wrap}
-  .hint{font-size:13px; color:var(--muted)}
+  .hint{font-size:13px; color:#b9c9bd}
   .divider{height:1px; background:#153523; margin:12px 0; opacity:.9}
   table{width:100%; border-collapse:collapse}
   th,td{padding:10px 8px; border-bottom:1px solid #183b27; text-align:left}
@@ -159,7 +159,6 @@
       <a class="btn ghost" id="pBack" href="#">Je suis l'organisateur·rice</a>
     </div>
 
-    <!-- Intro -->
     <div id="intro" class="intro">
       <h2>🎁 Bienvenue au Secret Santa !</h2>
       <p>Cette édition a été imaginée et organisée par <strong>Henri</strong>.</p>
@@ -169,7 +168,6 @@
       </div>
     </div>
 
-    <!-- Slot-machine -->
     <div id="slotStage" class="slot" style="display:none">
       <div class="slot-name" id="slotName">—</div>
       <div class="slot-strip" id="slotStrip"></div>
@@ -178,7 +176,6 @@
       </div>
     </div>
 
-    <!-- Résultat -->
     <div id="final" class="intro" style="display:none">
       <h2>🎅 Ton Secret Santa</h2>
       <div id="giftTo" style="font-size:38px; font-weight:900; margin-top:6px"></div>
@@ -205,64 +202,280 @@
 <audio id="jingleEl" preload="auto" src="in-the-summer-we-just-had.mp3"></audio>
 
 <script>
-// --- placer ça tout en haut du script ---
+/* reset rapide si besoin */
 if (location.hash === '#reset') {
   try { localStorage.removeItem('ssanta_xmas'); } catch(e){}
   location.hash = '';
 }
 
-// … le reste de ton script …
-
-// Remplace ta fonction escapeHtml par celle-ci (corrige le mapping)
-function escapeHtml(str=''){
-  const map = {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"};
-  return String(str).replace(/[&<>"']/g, c => map[c]);
+/* --- neige décorative --- */
+const snow = document.getElementById('snow');
+for(let i=0;i<24;i++){
+  const s=document.createElement('div'); s.className='snowflake';
+  s.textContent=Math.random()<.5?'❄':'✶';
+  s.style.left=Math.random()*100+'vw';
+  s.style.fontSize=(12+Math.random()*18)+'px';
+  s.style.animationDuration=(8+Math.random()*12)+'s';
+  s.style.setProperty('--x',(Math.random()*80-40)+'px');
+  snow.appendChild(s);
 }
 
-// Remplace loadLocal() par cette version robuste :
-function loadLocal(){
-  let usedStored = false;
-  try{
-    const raw = localStorage.getItem('ssanta_xmas');
-    if(raw){
-      const d = JSON.parse(raw);
-      els.title.value  = d.title  || '';
-      els.budget.value = d.budget || '';
-      els.date.value   = d.date   || '';
-      els.list.innerHTML = '';
-      (Array.isArray(d.participants) ? d.participants : []).forEach(p=>addRow(p.name,p.email));
-      if (Array.isArray(d.pairs) && d.pairs.length){
-        state.pairs = d.pairs;
-        state.tokens = d.tokens || {};
-        state.payload = d.payload || null;
-        els.results.style.display = '';
-        renderTable();
-      }
-      usedStored = true;
-    }
-  }catch(e){
-    // si le JSON est corrompu, on purge
-    try{ localStorage.removeItem('ssanta_xmas'); }catch(_){}
-  }
+/* --- Données préchargées --- */
+const preloadedParticipants = [
+  {name:"Hubert", email:"h2marliave@gmail.com"},
+  {name:"Alexandre", email:"alexandre.giuglaris@gmail.com"},
+  {name:"Henri", email:"hdemarliave@gmail.com"},
+  {name:"Louis", email:"louidemar@gmail.com"},
+  {name:"Caroline", email:"tillieuxcaroline@gmail.com"},
+  {name:"Marie-Caroline", email:"mcdemarliave@gmail.com"},
+  {name:"Constance", email:"constancedemarliave@gmail.com"},
+  {name:"Lucile", email:"luciledemarliave@gmail.com"}
+];
+const hardExclusions = [
+  ["Hubert","Marie-Caroline"],
+  ["Alexandre","Constance"],
+  ["Henri","Caroline"]
+];
 
-  // Fallback si aucune ligne n’a été rendue
-  if (!els.list.children.length) {
+/* --- helpers --- */
+const qs = s => document.querySelector(s);
+const qsa = s => Array.from(document.querySelectorAll(s));
+const els = {
+  organizer: qs('#organizer'), participant: qs('#participant'),
+  list: qs('#list'), add: qs('#add'), paste: qs('#paste'),
+  draw: qs('#draw'), shuffle: qs('#shuffle'),
+  results: qs('#results'), table: qs('#table'),
+  copyAll: qs('#copyAll'), exportCsv: qs('#exportCsv'),
+  btnNew: qs('#btnNew'), btnHelp: qs('#btnHelp'), help: qs('#help'),
+  title: qs('#title'), budget: qs('#budget'), date: qs('#date'),
+  // participant
+  intro: qs('#intro'), startReveal: qs('#startReveal'),
+  slotStage: qs('#slotStage'), slotName: qs('#slotName'),
+  slotStrip: qs('#slotStrip'), spinBtn: qs('#spinBtn'),
+  final: qs('#final'), giftTo: qs('#giftTo'), meta: qs('#meta'),
+  pBack: qs('#pBack'), pEvent: qs('#pEvent'), pBudget: qs('#pBudget'), pDate: qs('#pDate'),
+  rules: qs('#rules'), confetti: qs('#confetti'),
+  jingleEl: qs('#jingleEl')
+};
+const state = { participants:[], pairs:[], tokens:{}, payload:null };
+
+/* utils */
+function token(n){ const d='abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'; let o=''; for(let i=0;i<n;i++) o+=d[Math.floor(Math.random()*d.length)]; return o; }
+function shuffle(a){ const x=a.slice(); for(let i=x.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1)); [x[i],x[j]]=[x[j],x[i]];} return x; }
+function escapeHtml(str=''){ const map={"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}; return String(str).replace(/[&<>"']/g,c=>map[c]); }
+
+/* organiser UI */
+function addRow(name='', email=''){
+  const row=document.createElement('div'); row.className='row'; row.style.alignItems='stretch';
+  row.innerHTML=`
+    <input type="text" placeholder="Prénom" value="${escapeHtml(name)}" style="flex:1"/>
+    <input type="email" placeholder="email (optionnel)" value="${escapeHtml(email)}" style="flex:1"/>
+    <button class="btn ghost" title="Supprimer">✕</button>`;
+  const [n,e,del]=row.children;
+  del.addEventListener('click',()=>{row.remove(); refreshState(); saveLocal();});
+  n.addEventListener('input',()=>{refreshState(); saveLocal();});
+  e.addEventListener('input',()=>{refreshState(); saveLocal();});
+  els.list.appendChild(row); refreshState();
+}
+function refreshState(){
+  state.participants = qsa('#list .row').map(r=>({name:r.children[0].value.trim(), email:r.children[1].value.trim()})).filter(p=>p.name);
+  els.draw.disabled = state.participants.length<2;
+  els.shuffle.disabled = !state.pairs.length;
+}
+function parsePaste(text){
+  const items = text.split(/[\n,;]+/).map(s=>s.trim()).filter(Boolean);
+  return items.map(s=>{
+    const parts=s.split(/\s+/);
+    if(parts.length>=2 && parts[parts.length-1].includes('@')){ const email=parts.pop(); return {name:parts.join(' '), email}; }
+    return {name:s, email:''};
+  });
+}
+function buildExclusionMap(names){
+  const m=new Map(); names.forEach(n=>m.set(n,new Set([n])));
+  hardExclusions.forEach(([a,b])=>{ if(m.has(a)) m.get(a).add(b); if(m.has(b)) m.get(b).add(a); });
+  return m;
+}
+function generateWithConstraints(names){
+  const N=names.length, excl=buildExclusionMap(names);
+  const receivers=new Set(names), order=shuffle(names), assign=new Map();
+  function dfs(i){
+    if(i===N) return true;
+    const g=order[i], cand=Array.from(receivers).filter(r=>!excl.get(g).has(r));
+    for(let k=cand.length-1;k>0;k--){const j=Math.floor(Math.random()*(k+1)); [cand[k],cand[j]]=[cand[j],cand[k]];}
+    for(const r of cand){ assign.set(g,r); receivers.delete(r); if(dfs(i+1)) return true; receivers.add(r); assign.delete(g); }
+    return false;
+  }
+  if(!dfs(0)) return null;
+  return names.map(g=>({giver:g, receiver:assign.get(g)}));
+}
+function buildPayload(){
+  const meta={ev: els.title.value.trim()||'', bu: els.budget.value.trim()||'', dt: els.date.value||'', list: state.pairs.map(pr=>({t:state.tokens[pr.giver], g:pr.giver, r:pr.receiver}))};
+  state.payload=btoa(encodeURIComponent(JSON.stringify(meta)));
+}
+function makeLink(token){ const base=location.href.split('#')[0]; return `${base}#d=${state.payload}&t=${token}`; }
+function renderTable(){
+  els.table.innerHTML=''; const head=document.createElement('tr'); head.innerHTML='<th>Participant</th><th>Email</th><th>Lien individuel</th>'; els.table.appendChild(head);
+  state.participants.forEach(p=>{
+    const tr=document.createElement('tr'), link=makeLink(state.tokens[p.name]);
+    tr.innerHTML=`<td>${escapeHtml(p.name)}</td><td>${escapeHtml(p.email||'')}</td><td><span style="font-family:ui-monospace,monospace">${escapeHtml(link)}</span></td>`;
+    els.table.appendChild(tr);
+  });
+}
+function renderRules(){
+  els.rules.innerHTML='';
+  hardExclusions.forEach(([a,b])=>{
+    const el=document.createElement('span'); el.className='badge';
+    el.innerHTML=`<span>⛔</span><span>${escapeHtml(a)}</span> <span>↔</span> <span>${escapeHtml(b)}</span>`;
+    els.rules.appendChild(el);
+  });
+}
+function ensureParticipantsFilled(){
+  if (!document.querySelector('#list .row')) {
     els.list.innerHTML = '';
-    preloadedParticipants.forEach(p=>addRow(p.name,p.email));
+    preloadedParticipants.forEach(p=>addRow(p.name,p.email||'')); // précharge
   }
-  renderRules();
   refreshState();
+  if ((state.participants||[]).length < 2) { addRow(); addRow(); refreshState(); }
 }
 
-// Ajoute une init “sûre” (remplace ta boot()/init) :
-function boot(){
-  // s’assure qu’il y a au moins 2 lignes pour activer les boutons
-  if (!els.list.children.length) { addRow(); addRow(); }
-  loadLocal();
+/* tirage */
+function generate(){
+  ensureParticipantsFilled();
+  const names=state.participants.map(p=>p.name);
+  if(names.length<2){ alert('Ajoute au moins 2 participants.'); return; }
+  const pairs=generateWithConstraints(names);
+  if(!pairs){ alert('Impossible de respecter les exclusions avec cette liste.'); return; }
+  state.pairs=pairs; state.tokens={};
+  for(const {giver} of pairs) state.tokens[giver]=token(10);
+  buildPayload(); renderTable(); els.results.style.display=''; els.shuffle.disabled=false; saveLocal();
+}
+
+/* stockage */
+function saveLocal(){ try{ localStorage.setItem('ssanta_xmas', JSON.stringify({title:els.title.value,budget:els.budget.value,date:els.date.value,participants:state.participants,pairs:state.pairs,tokens:state.tokens,payload:state.payload})); }catch(e){} }
+function loadLocal(){
+  let ok=false;
+  try{
+    const raw=localStorage.getItem('ssanta_xmas');
+    if(raw){
+      const d=JSON.parse(raw);
+      els.title.value=d.title||''; els.budget.value=d.budget||''; els.date.value=d.date||'';
+      els.list.innerHTML=''; (Array.isArray(d.participants)?d.participants:[]).forEach(p=>addRow(p.name,p.email));
+      if(Array.isArray(d.pairs)&&d.pairs.length){ state.pairs=d.pairs; state.tokens=d.tokens||{}; state.payload=d.payload||null; els.results.style.display=''; renderTable(); }
+      ok=true;
+    }
+  }catch(e){ try{ localStorage.removeItem('ssanta_xmas'); }catch(_){} }
+  if(!ok || !els.list.children.length){ els.list.innerHTML=''; preloadedParticipants.forEach(p=>addRow(p.name,p.email)); }
+  renderRules(); refreshState();
+}
+
+/* audio */
+const jingle = els.jingleEl; if(jingle){ jingle.volume=0.4; }
+function playJingle(){ if(!jingle) return; try{ jingle.currentTime=0; jingle.play().catch(()=>{});}catch(e){} }
+document.addEventListener('pointerdown', ()=>{ try{ jingle && jingle.play().then(()=>jingle.pause()).catch(()=>{});}catch(e){} }, {once:true});
+
+/* participant */
+function rebuildFromPayload(payloadStr, tokenKey){
+  try{
+    const data = JSON.parse(decodeURIComponent(atob(payloadStr)));
+    const entry = (data.list||[]).find(x=>x.t===tokenKey);
+    if(!entry) return null;
+    return {meta:data, me:entry.g, to:entry.r};
+  }catch(e){ return null; }
+}
+function startSlot(names, target){
+  const pool = names.filter(n=>n!==target);
+  const seq = []; for(let i=0;i<18;i++) seq.push(pool[Math.floor(Math.random()*pool.length)]);
+  for(let i=0;i<6;i++) seq.push(pool[Math.floor(Math.random()*pool.length)]);
+  seq.push(target);
+  els.slotStrip.innerHTML=''; seq.slice(0,6).forEach(n=>{const c=document.createElement('span'); c.className='slot-chip'; c.textContent=n; els.slotStrip.appendChild(c);});
+  let idx=0, delay=60;
+  (function tick(){
+    const name=seq[idx]; els.slotName.textContent=name;
+    if(idx<seq.length-1){
+      els.slotStrip.removeChild(els.slotStrip.firstChild);
+      const chip=document.createElement('span'); chip.className='slot-chip'; chip.textContent=seq[Math.min(idx+6,seq.length-1)];
+      els.slotStrip.appendChild(chip);
+    }
+    idx++;
+    if(idx<seq.length-1){ delay=Math.min(260, delay + (idx>16?30:10)); setTimeout(tick, delay); }
+    else{
+      els.slotName.textContent=target; playJingle(); burstConfetti();
+      setTimeout(()=>{ els.slotStage.style.display='none'; els.final.style.display='grid'; els.giftTo.textContent='🎁 Tu offres à ' + target + ' !'; }, 400);
+    }
+  })();
+}
+function burstConfetti(){
+  const colors=['#facc15','#e11d48','#22c55e','#60a5fa','#f472b6','#f97316'];
+  for(let i=0;i<90;i++){
+    const e=document.createElement('i');
+    e.style.left=Math.random()*100+'vw'; e.style.top='0';
+    e.style.background=colors[Math.floor(Math.random()*colors.length)];
+    e.style.transform=`rotate(${Math.random()*360}deg)`;
+    e.style.animationDelay=(Math.random()*0.6)+'s'; e.style.opacity=0.85;
+    els.confetti.appendChild(e); setTimeout(()=>e.remove(), 2000);
+  }
+}
+function activateParticipant(meta, me, to){
+  els.pEvent.style.display = meta.ev ? '' : 'none'; els.pEvent.textContent = meta.ev ? '🎉 '+meta.ev : '';
+  els.pBudget.style.display = meta.bu ? '' : 'none'; els.pBudget.textContent = meta.bu ? '💶 Budget : '+meta.bu : '';
+  els.pDate.style.display = meta.dt ? '' : 'none'; els.pDate.textContent = meta.dt ? '📅 Échange : '+meta.dt : '';
+
+  const allNames = (meta.list||[]).map(x=>x.g);
+  els.startReveal.onclick = ()=>{
+    els.intro.style.display='none';
+    els.slotStage.style.display='grid';
+    els.spinBtn.disabled = false;
+    els.slotStrip.innerHTML='';
+    (shuffle(allNames).slice(0,6)).forEach(n=>{const c=document.createElement('span'); c.className='slot-chip'; c.textContent=n; els.slotStrip.appendChild(c);});
+    els.spinBtn.onclick = ()=>{
+      els.spinBtn.disabled = true;
+      playJingle(); // son au lancement
+      startSlot(allNames, to);
+    };
+  };
+}
+function handleHash(){
+  const u=new URLSearchParams(location.hash.slice(1));
+  const d=u.get('d'), t=u.get('t');
+  if(d && t){
+    els.organizer.style.display='none'; els.participant.style.display=''; els.help.style.display='none';
+    const parsed=rebuildFromPayload(d,t);
+    if(!parsed){ els.intro.innerHTML='<h2>⛔ Lien invalide</h2><p class="hint">Demande à l’organisateur un nouveau lien.</p>'; els.startReveal.onclick=()=>{}; return; }
+    const {meta, me, to} = parsed; activateParticipant(meta, me, to); return;
+  }
+  els.organizer.style.display=''; els.participant.style.display='none';
+}
+
+/* événements */
+document.addEventListener('click', e=>{
+  if(e.target && e.target.id==='add') addRow();
+  if(e.target && e.target.id==='draw'){ ensureParticipantsFilled(); generate(); }
+  if(e.target && e.target.id==='shuffle'){ ensureParticipantsFilled(); generate(); }
+  if(e.target && e.target.id==='btnNew'){
+    els.title.value='Secret Santa de Noël'; els.budget.value=''; els.date.value='';
+    els.list.innerHTML=''; state.participants=[]; state.pairs=[]; state.tokens={}; state.payload=null;
+    els.results.style.display='none'; addRow(); addRow(); refreshState(); saveLocal();
+  }
+  if(e.target && e.target.id==='btnHelp'){ e.preventDefault(); els.help.style.display = els.help.style.display ? '' : 'none'; }
+  if(e.target && e.target.id==='pBack'){ location.hash=''; handleHash(); }
+});
+document.addEventListener('click', async e=>{
+  if(e.target && e.target.id==='paste'){
+    const txt=(await navigator.clipboard.readText().catch(()=>''))||'';
+    const list=txt?parsePaste(txt):[];
+    if(!list.length){ alert('Copie une liste (ligne par ligne ou séparée par des virgules) puis réessaie.'); return; }
+    list.forEach(p=>addRow(p.name,p.email)); refreshState(); saveLocal();
+  }
+});
+
+/* boot */
+(function boot(){
+  addRow(); addRow(); // garantie de 2 lignes min
+  loadLocal();        // charge ou préremplit
+  ensureParticipantsFilled();
   handleHash();
   window.addEventListener('hashchange', handleHash);
-}
-boot();
+})();
 </script>
 </body>
 </html>
