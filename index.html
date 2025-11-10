@@ -80,6 +80,7 @@
     </div>
     <div class="row">
       <button class="btn ghost" id="btnNew">Nouveau tirage</button>
+      <button class="btn ghost" id="testSound">🔈 Test son</button>
       <a class="btn gold" href="#" id="btnHelp">Aide</a>
     </div>
   </header>
@@ -199,16 +200,17 @@
 </div>
 
 <div id="confetti" class="confetti"></div>
-<audio id="jingleEl" preload="auto" src="in-the-summer-we-just-had.mp3"></audio>
+<!-- cache-busting & playsinline -->
+<audio id="jingleEl" preload="auto" src="in-the-summer-we-just-had.mp3?v=2" type="audio/mpeg" playsinline></audio>
 
 <script>
-/* reset rapide si besoin */
+/* ================== RESET ÉTAT LOCAL (optionnel) ================== */
 if (location.hash === '#reset') {
   try { localStorage.removeItem('ssanta_xmas'); } catch(e){}
   location.hash = '';
 }
 
-/* --- neige décorative --- */
+/* ================== NEIGE ================== */
 const snow = document.getElementById('snow');
 for(let i=0;i<24;i++){
   const s=document.createElement('div'); s.className='snowflake';
@@ -220,7 +222,7 @@ for(let i=0;i<24;i++){
   snow.appendChild(s);
 }
 
-/* --- Données préchargées --- */
+/* ================== DONNÉES PRÉCHARGÉES ================== */
 const preloadedParticipants = [
   {name:"Hubert", email:"h2marliave@gmail.com"},
   {name:"Alexandre", email:"alexandre.giuglaris@gmail.com"},
@@ -237,7 +239,7 @@ const hardExclusions = [
   ["Henri","Caroline"]
 ];
 
-/* --- helpers --- */
+/* ================== HELPERS & ÉTAT ================== */
 const qs = s => document.querySelector(s);
 const qsa = s => Array.from(document.querySelectorAll(s));
 const els = {
@@ -255,16 +257,15 @@ const els = {
   final: qs('#final'), giftTo: qs('#giftTo'), meta: qs('#meta'),
   pBack: qs('#pBack'), pEvent: qs('#pEvent'), pBudget: qs('#pBudget'), pDate: qs('#pDate'),
   rules: qs('#rules'), confetti: qs('#confetti'),
-  jingleEl: qs('#jingleEl')
+  jingleEl: qs('#jingleEl'), testSound: qs('#testSound')
 };
 const state = { participants:[], pairs:[], tokens:{}, payload:null };
 
-/* utils */
 function token(n){ const d='abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'; let o=''; for(let i=0;i<n;i++) o+=d[Math.floor(Math.random()*d.length)]; return o; }
 function shuffle(a){ const x=a.slice(); for(let i=x.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1)); [x[i],x[j]]=[x[j],x[i]];} return x; }
 function escapeHtml(str=''){ const map={"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}; return String(str).replace(/[&<>"']/g,c=>map[c]); }
 
-/* organiser UI */
+/* ================== UI ORGANISATEUR ================== */
 function addRow(name='', email=''){
   const row=document.createElement('div'); row.className='row'; row.style.alignItems='stretch';
   row.innerHTML=`
@@ -338,7 +339,7 @@ function ensureParticipantsFilled(){
   if ((state.participants||[]).length < 2) { addRow(); addRow(); refreshState(); }
 }
 
-/* tirage */
+/* ================== TIRAGE ================== */
 function generate(){
   ensureParticipantsFilled();
   const names=state.participants.map(p=>p.name);
@@ -350,7 +351,7 @@ function generate(){
   buildPayload(); renderTable(); els.results.style.display=''; els.shuffle.disabled=false; saveLocal();
 }
 
-/* stockage */
+/* ================== STORAGE ================== */
 function saveLocal(){ try{ localStorage.setItem('ssanta_xmas', JSON.stringify({title:els.title.value,budget:els.budget.value,date:els.date.value,participants:state.participants,pairs:state.pairs,tokens:state.tokens,payload:state.payload})); }catch(e){} }
 function loadLocal(){
   let ok=false;
@@ -368,12 +369,69 @@ function loadLocal(){
   renderRules(); refreshState();
 }
 
-/* audio */
-const jingle = els.jingleEl; if(jingle){ jingle.volume=0.4; }
-function playJingle(){ if(!jingle) return; try{ jingle.currentTime=0; jingle.play().catch(()=>{});}catch(e){} }
-document.addEventListener('pointerdown', ()=>{ try{ jingle && jingle.play().then(()=>jingle.pause()).catch(()=>{});}catch(e){} }, {once:true});
+/* ================== AUDIO ROBUSTE + FALLBACK ================== */
+const jingle = els.jingleEl;
+let jingleReady = false;
 
-/* participant */
+if (jingle) {
+  jingle.volume = 0.7;
+  jingle.muted = false;
+  jingle.preload = 'auto';
+  jingle.load();
+
+  jingle.addEventListener('canplaythrough', () => { jingleReady = true; }, { once:true });
+  jingle.addEventListener('loadedmetadata', () => { if (jingle.duration>0) jingleReady = true; });
+  jingle.addEventListener('error', () => { jingleReady = false; });
+}
+
+// “ding” de secours si le MP3 est KO
+function playChime(){
+  try{
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const master = ctx.createGain(); master.gain.value = 0.18; master.connect(ctx.destination);
+    const notes = [1320, 1760, 1480, 1980];
+    notes.forEach((f,i)=>{
+      const o=ctx.createOscillator(); const g=ctx.createGain();
+      o.type='triangle'; o.frequency.value=f;
+      const t0=ctx.currentTime+i*0.12, t1=t0+0.35;
+      g.gain.setValueAtTime(0,t0);
+      g.gain.linearRampToValueAtTime(1,t0+0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001,t1);
+      o.connect(g); g.connect(master); o.start(t0); o.stop(t1+0.02);
+    });
+  }catch(e){}
+}
+
+// déverrouille l’audio au premier geste (iOS/Android)
+async function unlockAudioOnce(){
+  if (!jingle) return;
+  try { jingle.currentTime = 0; await jingle.play(); jingle.pause(); } catch(e) {}
+  jingle.currentTime = 0;
+}
+document.addEventListener('pointerdown', unlockAudioOnce, { once:true });
+
+// jouer le jingle (ou fallback)
+async function playJingle(){
+  try{
+    if (jingle && (jingleReady || jingle.duration>0)) {
+      jingle.currentTime = 0;
+      await jingle.play();
+      return;
+    }
+  }catch(e){}
+  playChime();
+}
+
+// bouton test
+if (els.testSound) {
+  els.testSound.addEventListener('click', async ()=>{
+    const ok = jingle && (jingleReady || jingle.duration>0);
+    if (ok) { try{ jingle.currentTime=0; await jingle.play(); }catch(e){} }
+    else { playChime(); }
+  });
+}
+
+/* ================== VUE PARTICIPANT ================== */
 function rebuildFromPayload(payloadStr, tokenKey){
   try{
     const data = JSON.parse(decodeURIComponent(atob(payloadStr)));
@@ -421,12 +479,18 @@ function activateParticipant(meta, me, to){
   els.pDate.style.display = meta.dt ? '' : 'none'; els.pDate.textContent = meta.dt ? '📅 Échange : '+meta.dt : '';
 
   const allNames = (meta.list||[]).map(x=>x.g);
+  // Pré-brancher le bouton (même après reload)
   els.startReveal.onclick = ()=>{
     els.intro.style.display='none';
     els.slotStage.style.display='grid';
     els.spinBtn.disabled = false;
+
+    // Pré-affiche quelques prénoms
     els.slotStrip.innerHTML='';
-    (shuffle(allNames).slice(0,6)).forEach(n=>{const c=document.createElement('span'); c.className='slot-chip'; c.textContent=n; els.slotStrip.appendChild(c);});
+    (shuffle(allNames).slice(0,6)).forEach(n=>{
+      const c=document.createElement('span'); c.className='slot-chip'; c.textContent=n; els.slotStrip.appendChild(c);
+    });
+
     els.spinBtn.onclick = ()=>{
       els.spinBtn.disabled = true;
       playJingle(); // son au lancement
@@ -446,7 +510,7 @@ function handleHash(){
   els.organizer.style.display=''; els.participant.style.display='none';
 }
 
-/* événements */
+/* ================== ÉVÉNEMENTS ================== */
 document.addEventListener('click', e=>{
   if(e.target && e.target.id==='add') addRow();
   if(e.target && e.target.id==='draw'){ ensureParticipantsFilled(); generate(); }
@@ -468,10 +532,10 @@ document.addEventListener('click', async e=>{
   }
 });
 
-/* boot */
+/* ================== BOOT ================== */
 (function boot(){
-  addRow(); addRow(); // garantie de 2 lignes min
-  loadLocal();        // charge ou préremplit
+  addRow(); addRow();      // au moins 2 lignes pour activer les boutons
+  loadLocal();             // charge ou préremplit
   ensureParticipantsFilled();
   handleHash();
   window.addEventListener('hashchange', handleHash);
