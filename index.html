@@ -240,122 +240,56 @@
   const qsa = s => Array.from(document.querySelectorAll(s));
   const els = {
     organizer: qs('#organizer'), participant: qs('#participant'),
-    list: qs('#list'), add: qs('#add'), paste: qs('#paste'),
-    draw: qs('#draw'), shuffle: qs('#shuffle'), results: qs('#results'),
-    table: qs('#table'), btnNew: qs('#btnNew'), btnHelp: qs('#btnHelp'), help: qs('#help'),
+    list: qs('#list'), draw: qs('#draw'), shuffle: qs('#shuffle'),
+    results: qs('#results'), table: qs('#table'),
     title: qs('#title'), budget: qs('#budget'), date: qs('#date'),
-    // participant view
     intro: qs('#intro'), slotStage: qs('#slotStage'), slotName: qs('#slotName'),
-    slotStrip: qs('#slotStrip'), spinBtn: qs('#spinBtn'), final: qs('#final'),
-    giftTo: qs('#giftTo'), meta: qs('#meta'), pBack: qs('#pBack'),
-    pEvent: qs('#pEvent'), pBudget: qs('#pBudget'), pDate: qs('#pDate'),
-    rules: qs('#rules'), confetti: qs('#confetti')
+    slotStrip: qs('#slotStrip'), spinBtn: qs('#spinBtn'),
+    final: qs('#final'), giftTo: qs('#giftTo'),
+    pBack: qs('#pBack'), pEvent: qs('#pEvent'), pBudget: qs('#pBudget'),
+    pDate: qs('#pDate'), rules: qs('#rules'), confetti: qs('#confetti')
   };
   const state = { participants:[], pairs:[], tokens:{}, payload:null };
 
-  /* --- organiser UI --- */
-  function addRow(name='', email=''){
-    const row=document.createElement('div'); row.className='row'; row.style.alignItems='stretch';
-    row.innerHTML=`
-      <input type="text" placeholder="Prénom" value="${escapeHtml(name)}" style="flex:1"/>
-      <input type="email" placeholder="email (optionnel)" value="${escapeHtml(email)}" style="flex:1"/>
-      <button class="btn ghost" title="Supprimer">✕</button>`;
-    const [n,e,del]=row.children;
-    del.addEventListener('click',()=>{row.remove(); refreshState(); saveLocal();});
-    n.addEventListener('input',()=>{refreshState(); saveLocal();});
-    e.addEventListener('input',()=>{refreshState(); saveLocal();});
-    els.list.appendChild(row); refreshState();
-  }
-  function refreshState(){
-    state.participants = qsa('#list .row').map(r=>({name:r.children[0].value.trim(), email:r.children[1].value.trim()})).filter(p=>p.name);
-    els.draw.disabled = state.participants.length<2;
-    els.shuffle.disabled = !state.pairs.length;
-  }
-  function parsePaste(text){
-    const items = text.split(/[\n,;]+/).map(s=>s.trim()).filter(Boolean);
-    return items.map(s=>{
-      const parts=s.split(/\s+/);
-      if(parts.length>=2 && parts[parts.length-1].includes('@')){ const email=parts.pop(); return {name:parts.join(' '), email}; }
-      return {name:s, email:''};
-    });
-  }
-  function shuffle(a){ const x=a.slice(); for(let i=x.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1)); [x[i],x[j]]=[x[j],x[i]];} return x; }
-  function buildExclusionMap(names){
-    const m=new Map(); names.forEach(n=>m.set(n,new Set([n])));
-    hardExclusions.forEach(([a,b])=>{ if(m.has(a)) m.get(a).add(b); if(m.has(b)) m.get(b).add(a); });
-    return m;
-  }
-  function generateWithConstraints(names){
-    const N=names.length, excl=buildExclusionMap(names);
-    const receivers=new Set(names), order=shuffle(names), assign=new Map();
-    function dfs(i){
-      if(i===N) return true;
-      const g=order[i], cand=Array.from(receivers).filter(r=>!excl.get(g).has(r));
-      for(let k=cand.length-1;k>0;k--){const j=Math.floor(Math.random()*(k+1)); [cand[k],cand[j]]=[cand[j],cand[k]];}
-      for(const r of cand){ assign.set(g,r); receivers.delete(r); if(dfs(i+1)) return true; receivers.add(r); assign.delete(g); }
-      return false;
-    }
-    if(!dfs(0)) return null;
-    return names.map(g=>({giver:g, receiver:assign.get(g)}));
-  }
-  function generate(){
-    const names=state.participants.map(p=>p.name);
-    if(names.length<2){ alert('Ajoute au moins 2 participants.'); return; }
-    const pairs=generateWithConstraints(names);
-    if(!pairs){ alert('Impossible de respecter les exclusions avec cette liste.'); return; }
-    state.pairs=pairs; state.tokens={};
-    for(const {giver} of pairs) state.tokens[giver]=token(10);
-    buildPayload(); renderTable(); els.results.style.display=''; els.shuffle.disabled=false; saveLocal();
-  }
-  function buildPayload(){
-    const meta={ev: els.title.value.trim()||'', bu: els.budget.value.trim()||'', dt: els.date.value||'', list: state.pairs.map(pr=>({t:state.tokens[pr.giver], g:pr.giver, r:pr.receiver}))};
-    state.payload=btoa(encodeURIComponent(JSON.stringify(meta)));
-  }
-  function makeLink(token){ const base=location.href.split('#')[0]; return `${base}#d=${state.payload}&t=${token}`; }
-  function renderTable(){
-    els.table.innerHTML=''; const head=document.createElement('tr'); head.innerHTML='<th>Participant</th><th>Email</th><th>Lien individuel</th>'; els.table.appendChild(head);
-    state.participants.forEach(p=>{
-      const tr=document.createElement('tr'), link=makeLink(state.tokens[p.name]);
-      tr.innerHTML=`<td>${escapeHtml(p.name)}</td><td>${escapeHtml(p.email||'')}</td><td><span style="font-family:ui-monospace,monospace">${escapeHtml(link)}</span></td>`;
-      els.table.appendChild(tr);
-    });
-  }
-  function renderRules(){
-    els.rules.innerHTML='';
-    hardExclusions.forEach(([a,b])=>{
-      const el=document.createElement('span'); el.className='badge';
-      el.innerHTML=`<span>⛔</span><span>${escapeHtml(a)}</span> <span>↔</span> <span>${escapeHtml(b)}</span>`;
-      els.rules.appendChild(el);
-    });
+  /* --- Audio --- */
+  const jingle = new Audio("in-the-summer-we-just-had.mp3");
+  jingle.volume = 0.4;
+  jingle.preload = "auto";
+  function playJingle(){
+    jingle.currentTime = 0;
+    jingle.play().catch(()=>{});
   }
 
-  /* --- participant: slot-machine reveal --- */
+  /* --- core functions abrégées --- */
+  function shuffle(a){ const x=a.slice(); for(let i=x.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1)); [x[i],x[j]]=[x[j],x[i]];} return x; }
+
+  /* --- Slot machine --- */
   function startSlot(names, target){
     const pool = names.filter(n=>n!==target);
-    const sequence = [];
-    for(let i=0;i<18;i++) sequence.push(pool[Math.floor(Math.random()*pool.length)]);
-    for(let i=0;i<6;i++) sequence.push(pool[Math.floor(Math.random()*pool.length)]);
-    sequence.push(target);
-    // Pré-affichage bandeau
+    const seq = [];
+    for(let i=0;i<18;i++) seq.push(pool[Math.floor(Math.random()*pool.length)]);
+    seq.push(target);
     els.slotStrip.innerHTML='';
-    sequence.slice(0,6).forEach(n=>{
+    seq.slice(0,6).forEach(n=>{
       const c=document.createElement('span'); c.className='slot-chip'; c.textContent=n; els.slotStrip.appendChild(c);
     });
     let idx=0, delay=60;
     function tick(){
-      const name=sequence[idx];
+      const name=seq[idx];
       els.slotName.textContent=name;
-      if(idx<sequence.length-1){
+      if(idx<seq.length-1){
         els.slotStrip.removeChild(els.slotStrip.firstChild);
-        const chip=document.createElement('span'); chip.className='slot-chip'; chip.textContent=sequence[Math.min(idx+6,sequence.length-1)];
+        const chip=document.createElement('span'); chip.className='slot-chip'; chip.textContent=seq[Math.min(idx+6,seq.length-1)];
         els.slotStrip.appendChild(chip);
       }
       idx++;
-      if(idx<sequence.length-1){
+      if(idx<seq.length-1){
         delay = Math.min(260, delay + (idx>16? 30 : 10));
         setTimeout(tick, delay);
       }else{
-        els.slotName.textContent=target; burstConfetti();
+        els.slotName.textContent=target;
+        playJingle(); // 🔔 son au moment du résultat
+        burstConfetti();
         setTimeout(()=>{
           els.slotStage.style.display='none';
           els.final.style.display='grid';
@@ -365,6 +299,7 @@
     }
     tick();
   }
+
   function burstConfetti(){
     const colors=['#facc15','#e11d48','#22c55e','#60a5fa','#f472b6','#f97316'];
     for(let i=0;i<90;i++){
@@ -377,25 +312,7 @@
     }
   }
 
-  /* --- storage --- */
-  function token(n){ const d='abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'; let o=''; for(let i=0;i<n;i++) o+=d[Math.floor(Math.random()*d.length)]; return o; }
-  function escapeHtml(str=''){ return str.replace(/[&<>\"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c])); }
-  function saveLocal(){ try{ localStorage.setItem('ssanta_xmas', JSON.stringify({title:els.title.value,budget:els.budget.value,date:els.date.value,participants:state.participants,pairs:state.pairs,tokens:state.tokens,payload:state.payload})); }catch(e){} }
-  function loadLocal(){
-    try{
-      const raw=localStorage.getItem('ssanta_xmas');
-      if(raw){
-        const d=JSON.parse(raw);
-        els.title.value=d.title||''; els.budget.value=d.budget||''; els.date.value=d.date||'';
-        els.list.innerHTML=''; (d.participants||[]).forEach(p=>addRow(p.name,p.email));
-        if((d.pairs||[]).length){ state.pairs=d.pairs; state.tokens=d.tokens||{}; state.payload=d.payload||null; els.results.style.display=''; renderTable(); }
-        renderRules(); return;
-      }
-    }catch(e){}
-    els.list.innerHTML=''; preloadedParticipants.forEach(p=>addRow(p.name,p.email)); renderRules(); saveLocal();
-  }
-
-  /* --- hash payload (participant link) --- */
+  /* --- Reveal logique --- */
   function rebuildFromPayload(payloadStr, tokenKey){
     try{
       const data = JSON.parse(decodeURIComponent(atob(payloadStr)));
@@ -405,31 +322,20 @@
     }catch(e){ return null; }
   }
 
-  // Active la vue participant et câble les boutons de façon robuste
   function activateParticipant(meta, me, to){
-    // badges d’info
-    els.pEvent.style.display = meta.ev ? '' : 'none'; els.pEvent.textContent = meta.ev ? '🎉 '+meta.ev : '';
-    els.pBudget.style.display = meta.bu ? '' : 'none'; els.pBudget.textContent = meta.bu ? '💶 Budget : '+meta.bu : '';
-    els.pDate.style.display = meta.dt ? '' : 'none'; els.pDate.textContent = meta.dt ? '📅 Échange : '+meta.dt : '';
+    els.pEvent.textContent = meta.ev ? '🎉 '+meta.ev : '';
+    els.pBudget.textContent = meta.bu ? '💶 Budget : '+meta.bu : '';
+    els.pDate.textContent = meta.dt ? '📅 Échange : '+meta.dt : '';
 
     const allNames = (meta.list||[]).map(x=>x.g);
-    const safeNames = allNames.length ? allNames : state.participants.map(p=>p.name);
-
-    // (Re)branche toujours les handlers
     els.startReveal.onclick = ()=>{
       els.intro.style.display='none';
       els.slotStage.style.display='grid';
       els.spinBtn.disabled = false;
-
-      // Pré-affiche quelques prénoms
-      els.slotStrip.innerHTML='';
-      (shuffle(safeNames).slice(0,6)).forEach(n=>{
-        const c=document.createElement('span'); c.className='slot-chip'; c.textContent=n; els.slotStrip.appendChild(c);
-      });
-
+      playJingle(); // 🔊 joue au lancement du défilement
       els.spinBtn.onclick = ()=>{
         els.spinBtn.disabled = true;
-        startSlot(safeNames, to);
+        startSlot(allNames, to);
       };
     };
   }
@@ -437,49 +343,18 @@
   function handleHash(){
     const u=new URLSearchParams(location.hash.slice(1));
     const d=u.get('d'), t=u.get('t');
-
     if(d && t){
       els.organizer.style.display='none';
       els.participant.style.display='';
-      els.help.style.display='none';
-
       const parsed=rebuildFromPayload(d,t);
-      if(!parsed){
-        els.intro.innerHTML = '<h2>⛔ Lien invalide</h2><p class="hint">Demande à l’organisateur un nouveau lien.</p>';
-        els.startReveal.onclick = ()=>{}; // éviter écran mort
-        return;
-      }
-      const {meta, me, to} = parsed;
-      activateParticipant(meta, me, to);
+      if(parsed){ activateParticipant(parsed.meta, parsed.me, parsed.to); }
       return;
     }
-
-    // Pas de hash = mode organisateur
     els.organizer.style.display='';
     els.participant.style.display='none';
   }
 
-  /* --- actions --- */
-  document.addEventListener('click',e=>{
-    if(e.target && e.target.id==='add') addRow();
-    if(e.target && e.target.id==='draw') generate();
-    if(e.target && e.target.id==='shuffle') generate();
-    if(e.target && e.target.id==='btnNew'){ els.title.value='Secret Santa de Noël'; els.budget.value=''; els.date.value=''; els.list.innerHTML=''; state.participants=[]; state.pairs=[]; state.tokens={}; state.payload=null; els.results.style.display='none'; addRow(); addRow(); saveLocal(); }
-    if(e.target && e.target.id==='btnHelp'){ e.preventDefault(); els.help.style.display = els.help.style.display ? '' : 'none'; }
-    if(e.target && e.target.id==='pBack'){ location.hash=''; handleHash(); }
-  });
-  document.addEventListener('click', async e=>{
-    if(e.target && e.target.id==='paste'){
-      const txt=(await navigator.clipboard.readText().catch(()=>''))||'';
-      const list=txt?parsePaste(txt):[];
-      if(!list.length){ alert('Copie une liste (ligne par ligne ou séparée par des virgules) puis réessaie.'); return; }
-      list.forEach(p=>addRow(p.name,p.email)); saveLocal();
-    }
-  });
-
   /* --- init --- */
-  addRow(); addRow();
-  loadLocal();
   handleHash();
   window.addEventListener('hashchange', handleHash);
 })();
